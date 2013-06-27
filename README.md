@@ -1,0 +1,1 @@
+Amateur Radio logging software for the ARRL Sweepstakes
