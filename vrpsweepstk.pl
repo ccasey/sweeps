@@ -29,7 +29,7 @@ $message;
 $sectMode = 0;
 
 $mycall = "N0VRP";
-$myprec = "A";
+$myprec = "M";
 $mysection = "KS";
 $mycheck = 93;
 
@@ -41,6 +41,7 @@ $last_checked;
 $last_qso;
 
 $update_call;
+$update_given_serial;
 
 
 %mults = ( CT => { worked => 0, longname => "Connecticut",},
@@ -49,13 +50,13 @@ $update_call;
 	   NH => { worked => 0, longname => "New Hampshire",},
 	   RI => { worked => 0, longname => "Rhode Island",},
 	   VT => { worked => 0, longname => "Vermont",}, 
-	   VMA => { worked => 0, longname => "West Mass",},
+	   WMA => { worked => 0, longname => "West Mass",},
            
 	   ENY => { worked => 0, longname => "East New York",},
 	   NLI => { worked => 0, longname => "NYC-Long Island",},
 	   NNJ => { worked => 0, longname => "North New Jersey",},
 	   NNY => { worked => 0, longname => "North New York",},
-	   SNJ => { worked => 0, longname => "South New Jearsey",},
+	   SNJ => { worked => 0, longname => "South New Jersey",},
 	   WNY => { worked => 0, longname => "West New York",},
 	   
 	   
@@ -75,7 +76,7 @@ $update_call;
 	   VA => { worked => 0, longname => "Virginia",},
 	   PR => { worked => 0, longname => "Puerto Rico",},
 	   VI => { worked => 0, longname => "Virgin Islands",},
-	   WCF => { worked => 0, longname => " West Central Florida",},
+	   WCF => { worked => 0, longname => "West Central Florida",},
 	   
 	   AR => { worked => 0, longname => "Arkansas",},
 	   LA => { worked => 0, longname => "Louisiana",},
@@ -129,9 +130,9 @@ $update_call;
 	   NL => { worked => 0, longname => "Newfoundland/Lab",},
 	   QC => { worked => 0, longname => "Quebec",},
 	   ONN => { worked => 0, longname => "Ontario North",},
-     ONS => { worked => 0, longname => "Ontario South",},
-     ONE => { worked => 0, longname => "Ontario East",},
-     GTA => { worked => 0, longname => "Greater Toronto",},
+     	   ONS => { worked => 0, longname => "Ontario South",},
+           ONE => { worked => 0, longname => "Ontario East",},
+           GTA => { worked => 0, longname => "Greater Toronto",},
 	   MB => { worked => 0, longname => "Manitoba",},
 	   SK => { worked => 0, longname => "Saskatchewan",},
 	   AB => { worked => 0, longname => "Alberta",},
@@ -188,6 +189,7 @@ sub loadlog {
     $mults{$foo[6]}{worked}++;
     $totqso = $foo[1];
     $last_qso = $foo[4];
+    $Freq = $foo[8];
    }
   }
   
@@ -196,6 +198,10 @@ sub loadlog {
 }
 
 ##########
+
+sub reloadlog {
+ 
+}
 
 sub printlog {
 
@@ -332,15 +338,31 @@ sub process_qso {
   #$qsotime = $qsos{$update_call}{qsotime};
   delete($qsos{$update_call});
   logit("del $update_call\n");
-  undef($update_call);
-  
+  #undef($update_call);
  }
  
  $Section = uc($Section);
  $Call = uc($Call);
  $Precedence = uc($Precedence);
  
- logit("add $totqso $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
+ if($update_given_serial){
+  logit("add $update_given_serial $Serial $Precedence $Call $Check $Section $update_qsotime $Freq\n");
+  undef($update_given_serial);
+  
+  $qsos{$Call}{rserial} = $Serial;
+  $qsos{$Call}{precedence} = $Precedence;
+  $qsos{$Call}{check} = $Check;
+  
+  if($Section ne $qsos{$Call}{section}){
+   $mults{$Section}{worked}++;
+   $mults{$qsos{$Call}{section}}{worked}--;
+  }
+  $qsos{$Call}{section} = $Section;
+  $qsos{$Call}{freq} = $Freq;
+  
+  
+ }else{
+  logit("add $totqso $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
  
   $qsos{$Call} = { sserial => $totqso, 
                     rserial => $Serial, 
@@ -352,7 +374,11 @@ sub process_qso {
 		    
 		     
 		    $mults{$Section}{worked}++;
+ }
  		    
+ undef($update_call);
+ undef($update_given_serial);
+ undef($update_qsotime);
  $doneButtonTxt = "Done";
  load_list();
  load_sections();
@@ -377,8 +403,8 @@ sub dupe_qso {
  
  if(defined($qsos{uc($Call)})){
     #print "dupe\n";
+   reset_qso();
    $Message = "DUPE";
-   undef($Call);
    return 1;
  }else{
   $Message = "GOOD";
@@ -386,6 +412,37 @@ sub dupe_qso {
  }
 
 }
+
+##########
+
+sub inline_dupe_qso {
+
+ # print "dupe_qso $Call\n" if $DEBUG;
+ 
+ #if(!defined($Call)){
+ # $Message = "No Call";
+ # return;
+ #}
+ 
+ my $entry = uc($_[0]);
+ 
+ if(defined($qsos{$entry})){
+   #print "dupe\n";
+   my @ta = localtime(($qsos{$entry}{qsotime} + 21600));
+   my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
+   my $ct = "$ta[2]$ta[1]";
+   $Message = "$qsos{$entry}{sserial} : $ta[2]:$ta[1] $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}";
+   $Inputs{Call}->configure(-background => red);
+   return 1;
+ }else{
+  $Message = "GOOD";
+  $Inputs{Call}->configure(-background => lightgrey);
+  #print $entry . "\n";
+  return 1;
+ }
+
+}
+
 ##########
 
 sub sort_by_timestamp{
@@ -545,10 +602,12 @@ sub recall_qso {
  
  my @qso_elements = split /\s+/, $r_qso;
  
- print $qso_elements[4] . "\n";
+ #print $qso_elements[4] . "\n";
  
  ($foo, $bar, $Serial,$Precedence,$Call,$Check,$Section,$Freq) = split /\s+/, $r_qso;
  
+ $update_qsotime = $qsos{$Call}{qsotime};
+ $update_given_serial = $foo;
  $update_call = $Call;
  #$update_time = 
  
@@ -566,6 +625,7 @@ sub make_window {
  my $lf = $main->Frame; # left
  my $aj = $main->Adjuster(-widget => $lf, -side => 'left');
  my $rf = $main->Frame; # right
+ my $Msg = $main->Frame; # message frame
  my $bframe = $main->Frame; # bottom
  
  # menu bar
@@ -587,55 +647,78 @@ sub make_window {
  my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
  my(@lpl) = qw/-side left/;
  
- foreach $vn ( "Serial", "Precedence", "Call", "Check", "Section", "Freq" ){
+ foreach $vn ( "Serial", "Precedence"){
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
  }
  
- $rf->Label(-textvariable => \$Message, 
+ $vn = "Call";
+  my $if = $rf->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Inputs{$vn} = $if->Entry(-validate        => 'key',
+			    -validatecommand => [\&inline_dupe_qso],
+			    -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+ 
+ 
+ 
+ foreach $vn ("Check", "Section" ){
+  my $if = $rf->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
+ }
+ 
+  $vn = "Freq";
+  my $if = $rf->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+ 
+ 
+ $rf->Label(-takefocus => 0, -textvariable => \$Message, 
             -borderwidth => 2,
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
- $rf->Label(-textvariable => \$Info, 
-            -borderwidth => 2,
+ $rf->Label(-takefocus => 0, -textvariable => \$Info, 
+            -borderwidth => 2, 
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
  
  my $bf = $rf->Frame->pack(qw/-anchor w/);
  
  $doneButtonTxt = "Done";
- $bf->Button( -textvariable => \$doneButtonTxt,
+ $bf->Button( -takefocus => 0, -textvariable => \$doneButtonTxt,
               -command => \&process_qso,
               )->pack(qw/-side left -pady 2/);
  
- $bf->Button( -text => "dupe <ctrl-d>", 
+ $bf->Button( -takefocus => 0, -text => "dupe <ctrl-d>", 
                -command => \&dupe_qso,
               )->pack(qw/-side left -pady 2/);
  
- $bf->Button( -text => "reset <crtl-c>", 
+ $bf->Button( -takefocus => 0, -text => "reset <crtl-c>", 
                -command => \&reset_qso,
               )->pack(qw/-side left -pady 2/);
  
- $bf->Button( -text => "delete", 
+ $bf->Button( -takefocus => 0, -text => "delete", 
                -command => \&delete_qso,
               )->pack(qw/-side left -pady 2/);
  
- $bf->Button( -text => "quit <ctrl-q>",
+ $bf->Button( -takefocus => 0, -text => "quit <ctrl-q>",
               -command => sub { exit },      
  	      )->pack(qw/-side left -pady 2/);
 	      
- $bf->Button( -text => "sect toggle",
+ $bf->Button( -takefocus => 0, -text => "sect toggle",
               -command => \&toggle_sections,      
  	      )->pack(qw/-side left -pady 2/);
  
  
- $lst = $lf->Scrolled(qw/Listbox -selectmode single -width 30 -height 18 -scrollbars e/);
+ $lst = $lf->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
+ $lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
  $lst->pack(qw/-fill both/);
  $lst->bind('<Double-Button-1>',\&recall_qso); 
  
- $sectList1 = $bframe->Listbox(-selectmode => single, -width => 26, -height => 20);
+ $sectList1 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
  $sectList1->pack(qw/-side left -fill both/);
  $sectList1->bind('<Double-Button-1>',
     sub { 
@@ -644,7 +727,7 @@ sub make_window {
 	}
  ); 
  
- $sectList2 = $bframe->Listbox(-selectmode => single, -width => 26, -height => 20);
+ $sectList2 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
  $sectList2->pack(qw/-side left -fill both/);
  $sectList2->bind('<Double-Button-1>',
    sub { 
@@ -653,7 +736,7 @@ sub make_window {
 	}
  ); 
  
- $sectList3 = $bframe->Listbox(-selectmode => single, -width => 26, -height => 20);
+ $sectList3 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
  $sectList3->pack(qw/-side left -fill both/);
  $sectList3->bind('<Double-Button-1>', 
     sub { 
@@ -665,7 +748,7 @@ sub make_window {
  #$sectList4 = $bframe->Scrolled(qw/Listbox -selectmode single -height 20 e/);
  #$sectList4->pack(qw/-side left -fill both/);
  
- $sectList4 = $bframe->Listbox(-selectmode => single, -width => 26, -height => 20);
+ $sectList4 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
  $sectList4->pack(qw/-side left -fill both/);
  $sectList4->bind('<Double-Button-1>',		 
     sub { 
@@ -693,6 +776,7 @@ sub make_window {
  $main->bind("<Control-c>",[\&reset_qso]);
  $main->bind("<Return>",[\&process_qso]);
  $main->bind("<Control-q>",[sub { exit}]);
+ $main->bind("<Control-t>",[\&toggle_sections]);
  						
  MainLoop();
  
