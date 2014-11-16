@@ -128,12 +128,15 @@ $update_call;
 	   MAR => { worked => 0, longname => "Maritime",},
 	   NL => { worked => 0, longname => "Newfoundland/Lab",},
 	   QC => { worked => 0, longname => "Quebec",},
-	   ON => { worked => 0, longname => "Ontario",},
+	   ONN => { worked => 0, longname => "Ontario North",},
+     ONS => { worked => 0, longname => "Ontario South",},
+     ONE => { worked => 0, longname => "Ontario East",},
+     GTA => { worked => 0, longname => "Greater Toronto",},
 	   MB => { worked => 0, longname => "Manitoba",},
 	   SK => { worked => 0, longname => "Saskatchewan",},
 	   AB => { worked => 0, longname => "Alberta",},
 	   BC => { worked => 0, longname => "British Columbia",},
-	   NWT => { worked => 0, longname => "Northern Territories",},
+	   NT => { worked => 0, longname => "Northern Territories",},
 	   
 	  );
 
