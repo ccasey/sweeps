@@ -32,7 +32,7 @@ $last_qso;
 	    mi => 0, oh => 0, wv => 0, 
 	    il => 0, in => 0, wi => 0, 
 	    co => 0, ia => 0, ks => 0, mn => 0, mo => 0, ne => 0, nd => 0, sd => 0, 
-	    mar => 0, nl => 0, qc => 0, on => 0, mb => 0, sk => 0, ab => 0, bc => 0, nt => 0
+	    mar => 0, qc => 0, onn => 0, ons => 0, one => 0, gta => 0, mb => 0, sk => 0, ab => 0, bc => 0, nt => 0
 	  );
 
 
