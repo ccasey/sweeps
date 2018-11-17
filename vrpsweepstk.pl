@@ -128,8 +128,7 @@ SK => { worked => 0, longname => "Saskatchewan ",},
 AB => { worked => 0, longname => "Alberta ",},
 BC => { worked => 0, longname => "British Columbia ",},
 NT => { worked => 0, longname => "Northern Territories ",},
-
-	  );
+);
 
 
 ##########
@@ -708,7 +707,7 @@ sub make_window {
  $lst->pack(qw/-fill both/);
  $lst->bind('<Double-Button-1>',\&recall_qso);
 
- $sectList1 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
+ $sectList1 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
  $sectList1->pack(qw/-side left -fill both/);
  $sectList1->bind('<Double-Button-1>',
     sub {
@@ -717,7 +716,7 @@ sub make_window {
 	}
  );
 
- $sectList2 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
+ $sectList2 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
  $sectList2->pack(qw/-side left -fill both/);
  $sectList2->bind('<Double-Button-1>',
    sub {
@@ -726,7 +725,7 @@ sub make_window {
 	}
  );
 
- $sectList3 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
+ $sectList3 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
  $sectList3->pack(qw/-side left -fill both/);
  $sectList3->bind('<Double-Button-1>',
     sub {
@@ -738,7 +737,7 @@ sub make_window {
  #$sectList4 = $bframe->Scrolled(qw/Listbox -selectmode single -height 20 e/);
  #$sectList4->pack(qw/-side left -fill both/);
 
- $sectList4 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 20);
+ $sectList4 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
  $sectList4->pack(qw/-side left -fill both/);
  $sectList4->bind('<Double-Button-1>',
     sub {
