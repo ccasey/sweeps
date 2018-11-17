@@ -509,7 +509,7 @@ sub clear_sections {
 
 sub load_sections {
 
- my $breakPoint = 20;
+ my $breakPoint = 21;
  my $cnt = 0;
 
  clear_sections();
