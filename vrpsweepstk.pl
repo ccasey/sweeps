@@ -606,7 +606,7 @@ sub recall_qso {
 sub make_window {
 
  my $main = MainWindow->new();
- $main->geometry('760x610');
+ $main->geometry('760x640');
  $main->title("VRP sweeps");
  $main->configure(-background=>'grey');
 
