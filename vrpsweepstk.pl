@@ -1,9 +1,13 @@
-#!/usr/bin/perl
+#!/Users/csc/perl5/perlbrew/perls/perl-5.16.0/bin/perl
 
 # sweeps logging program
 # - dupes
 # - scoring
 # - cabrillo v2 output
+
+use lib '.';
+use ICOM_CIV;
+my $socket = icom_civ_setup("/dev/cuau0");
 
 use English;
 require Tk;
@@ -603,6 +607,16 @@ sub recall_qso {
 }
 
 ##########
+
+sub get_rig_freq {
+	rig_freq = icom_civ_getfreq($socket, 0x66);
+	#$rig_freq = "0.014.322.500";
+	my($gig,$mhz,$khz,$hz) = split /\./, $rig_freq;
+	$mhz =~ s/^0+//;
+	return $mhz;
+}
+
+##########
 sub make_window {
 
  my $main = MainWindow->new();
@@ -660,10 +674,11 @@ sub make_window {
  }
 
   $vn = "Freq";
+	$Freq = get_rig_freq();
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
-  $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
-
+  $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => $Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Inputs{$vn}->repeat(1000,sub{$Freq = get_rig_freq()});
 
  $rf->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
@@ -759,6 +774,7 @@ sub make_window {
  $Inputs{Serial}->focus();
 
 
+$Freq = "foo";
 
 
  $main->bind("<Control-d>",[\&dupe_qso]);
