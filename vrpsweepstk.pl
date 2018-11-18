@@ -23,7 +23,7 @@ use Tk::DialogBox;
 
 use Getopt::Long qw(GetOptions);
 my $civ_enable;
-GetOptions('from=s' => \$source_address) or die "Usage: $0 --from NAME\n";
+GetOptions('civ' => \$civ_enable) or die "Usage: $0 --from NAME\n";
 
 use Term::ReadLine;
 $term = new Term::ReadLine 'vrpsweeps';
@@ -713,7 +713,9 @@ sub make_window {
   $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
   $vn = "Freq";
-	$Freq = get_rig_freq();
+	if ( $civ_enable ){
+		$Freq = get_rig_freq();
+	}
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
@@ -812,9 +814,11 @@ sub make_window {
  $Inputs{Serial}->focus();
 
 
-  #$Freq = "foo";
-	sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
-	$Inputs{"Freq"}->repeat(5000,\&update_freq);
+  if ( $civ_enable ) {
+		print "civ enabled\n";
+		sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
+		$Inputs{"Freq"}->repeat(5000,\&update_freq);
+	}
 
 
  $main->bind("<Control-d>",[\&dupe_qso]);
