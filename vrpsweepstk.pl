@@ -23,7 +23,11 @@ use Tk::DialogBox;
 
 use Getopt::Long qw(GetOptions);
 my $civ_enable;
-GetOptions('civ' => \$civ_enable) or die "Usage: $0 --from NAME\n";
+my $civ_debug;
+GetOptions(
+	'civ' => \$civ_enable,
+	'civ-debug' => \$civ_debug
+) or die "Usage: $0 --from NAME\n";
 
 use Term::ReadLine;
 $term = new Term::ReadLine 'vrpsweeps';
@@ -630,12 +634,15 @@ sub recall_qso {
 ##########
 
 sub get_rig_freq {
-	$rig_freq = icom_civ_getfreq($socket, 0x66);
-	#$rig_freq = "0.014.322.500";
+	if ($civ_debug){
+		$rig_freq = "0.014.322.500";
+	} else {
+		$rig_freq = icom_civ_getfreq($socket, 0x66);
+	}
 	my($gig,$mhz,$khz,$hz) = split /\./, $rig_freq;
 	$mhz =~ s/^0+//;
 	unless ($Freq){
-		$Freq = "fill me in"
+		$Freq = "no rig data yet"
 	}
 	if ($mhz) {
 		if ($Inputs{Freq}){
@@ -719,6 +726,7 @@ sub make_window {
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
  $rf->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
@@ -815,7 +823,8 @@ sub make_window {
 
 
   if ( $civ_enable ) {
-		print "civ enabled\n";
+		$Telltale{Freq}->configure(-text => "civ enabled");
+		$Telltale{Freq}->update();
 		sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
 		$Inputs{"Freq"}->repeat(5000,\&update_freq);
 	}
