@@ -441,6 +441,24 @@ sub inline_dupe_qso {
 
 ##########
 
+sub inline_validate_section {
+	my $entry = uc(shift);
+	#print "$entry\n";
+	if(defined($mults{$entry}) || !$entry){
+		$Inputs{Section}->configure(-background => lightgrey);
+		$Telltale{Section}->configure(-text => "$mults{$entry}{longname}");
+		$Telltale{Section}->update();
+		return 1;
+	} else {
+		$Inputs{Section}->configure(-background => red);
+		$Telltale{Section}->configure(-text => "");
+		$Telltale{Section}->update();
+		return 1;
+	}
+}
+
+##########
+
 sub sort_by_timestamp{
   $qsos{$a}{qsotime} <=> $qsos{$b}{qsotime};
 }
@@ -612,8 +630,8 @@ sub recall_qso {
 ##########
 
 sub get_rig_freq {
-	$rig_freq = icom_civ_getfreq($socket, 0x66);
-	#$rig_freq = "0.000.322.500";
+	#$rig_freq = icom_civ_getfreq($socket, 0x66);
+	$rig_freq = "0.014.322.500";
 	my($gig,$mhz,$khz,$hz) = split /\./, $rig_freq;
 	$mhz =~ s/^0+//;
 	unless ($Freq){
@@ -681,21 +699,24 @@ sub make_window {
 			    -validatecommand => [\&inline_dupe_qso],
 			    -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
-
-
- foreach $vn ("Check", "Section" ){
+  $vn = "Check";
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
- }
+ 	$vn = "Section";
+  my $if = $rf->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+	$Inputs{$vn} = $if->Entry(-validate        => 'key',
+					-validatecommand => [\&inline_validate_section],
+					-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
   $vn = "Freq";
 	$Freq = get_rig_freq();
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
-  #$Inputs{$vn}->repeat(1000,sub{$Freq = get_rig_freq()});
 
  $rf->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
