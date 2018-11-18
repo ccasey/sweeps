@@ -777,7 +777,7 @@ sub make_window {
 
 #$Freq = "foo";
 	sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
-	$Inputs{"Freq"}->repeat(1000,\&update_freq);
+	$Inputs{"Freq"}->repeat(2000,\&update_freq);
 
 
  $main->bind("<Control-d>",[\&dupe_qso]);
