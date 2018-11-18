@@ -620,12 +620,16 @@ sub get_rig_freq {
 		$Freq = "fill me in"
 	}
 	if ($mhz) {
+		if ($Inputs{Freq}){
+			$Inputs{Freq}->configure(-background => lightgrey);
+		}
 		return $mhz;
 	} else {
 		if ($Inputs{Freq}){
 			$Inputs{Freq}->configure(-background => yellow);
 		}
 		return $Freq;
+
 	}
 }
 
