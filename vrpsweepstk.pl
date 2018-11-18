@@ -34,7 +34,7 @@ $sectMode = 0;
 
 $mycall = "N0VRP";
 $myprec = "M";
-$mysection = "KS";
+$mysection = "NTX";
 $mycheck = 93;
 
 $last_freq = 0;
@@ -774,7 +774,7 @@ sub make_window {
  $Inputs{Serial}->focus();
 
 
-$Freq = "foo";
+#$Freq = "foo";
 
 
  $main->bind("<Control-d>",[\&dupe_qso]);
