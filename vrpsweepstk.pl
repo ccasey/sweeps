@@ -678,7 +678,7 @@ sub make_window {
   my $if = $rf->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => $Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
-  $Inputs{$vn}->repeat(1000,sub{$Freq = get_rig_freq()});
+  #$Inputs{$vn}->repeat(1000,sub{$Freq = get_rig_freq()});
 
  $rf->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
