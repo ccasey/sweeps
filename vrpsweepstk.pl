@@ -609,12 +609,12 @@ sub recall_qso {
 ##########
 
 sub get_rig_freq {
-	#$rig_freq = icom_civ_getfreq($socket, 0x66);
+	$rig_freq = icom_civ_getfreq($socket, 0x66);
 	#$rig_freq = "0.014.322.500";
 	my($gig,$mhz,$khz,$hz) = split /\./, $rig_freq;
 	$mhz =~ s/^0+//;
-	#return $mhz;
-	return rand(10);
+	return $mhz;
+	#return rand(10);
 }
 
 ##########
