@@ -451,12 +451,10 @@ sub inline_validate_section {
 	if(defined($mults{$entry}) || !$entry){
 		$Inputs{Section}->configure(-background => lightgrey);
 		$Telltale{Section}->configure(-text => "$mults{$entry}{longname}");
-		$Telltale{Section}->update();
 		return 1;
 	} else {
 		$Inputs{Section}->configure(-background => red);
 		$Telltale{Section}->configure(-text => "");
-		$Telltale{Section}->update();
 		return 1;
 	}
 }
