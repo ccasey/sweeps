@@ -17,12 +17,12 @@ sub inline_validate_section {
 		$Inputs{Section}->configure(-background => lightgrey);
 		#$Inputs{Section}->update;
 		$Telltale{Section}->configure(-text => "$mults{$entry}");
-		#$Telltale{Section}->update;
+		#$Telltale{Section}->update();
 	} else {
 		$Inputs{Section}->configure(-background => red);
-		#$Inputs{Section}->update;
+		#$Inputs{Section}->update();
 		$Telltale{Section}->configure(-text => "nope");
-		#$Telltale{Section}->update;
+		#$Telltale{Section}->update();
 	}
 	return 1;
 }
