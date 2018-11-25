@@ -21,6 +21,8 @@ use Tk::Menubutton;
 use Tk::Adjuster;
 use Tk::DialogBox;
 
+use POSIX qw(ceil);
+
 use Getopt::Long qw(GetOptions);
 my $civ_enable;
 my $civ_debug;
@@ -39,6 +41,7 @@ $DEBUG = 1;
 $message;
 
 $sectMode = 0;
+$SECT_LIST_CNT = 4; # how many columns of sections to display
 
 $mycall = "N0VRP";
 $myprec = "M";
@@ -525,10 +528,9 @@ sub toggle_sections {
 
 sub clear_sections {
 
- $sectList1->delete(0,"end");
- $sectList2->delete(0,"end");
- $sectList3->delete(0,"end");
- $sectList4->delete(0,"end");
+ for my $list (keys %SectList) {
+	 $SectList{$list}->delete(0,"end");
+ };
 
 }
 
@@ -536,52 +538,39 @@ sub clear_sections {
 
 sub load_sections {
 
- my $breakPoint = 21;
- my $cnt = 0;
+	my $sect_cnt = keys %mults;
+	my $break_point = ceil($sect_cnt / $SECT_LIST_CNT);
+	my $cnt = 0;
+	my $cur_list = 1;
 
- clear_sections();
+	clear_sections();
 
- foreach $mult (sort keys %mults ){
-
-
-  if($sectMode){
-   if($mults{$mult}{worked}){
-    next;
-   }
-  }
-
-   $cnt++;
-
-  my $status = $mults{$mult}{worked};
-
-  unless($mults{$mult}{worked} > 0){
-   $status = $status . " **";
-  }
+	foreach $mult (sort keys %mults ){
 
 
-  my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$status );
+		if($sectMode){
+			if($mults{$mult}{worked}){
+				next;
+			}
+		}
 
-  if($cnt <= $breakPoint){
-   $sectList1->insert('end',$ln);
-   next;
-  }
+		$cnt++;
+		if($cnt > $break_point){
+			$cur_list++;
+			$cnt = 1;
+		}
 
-  if($cnt > (3 * $breakPoint)){
-    $sectList4->insert('end',$ln);
-    next;
-  }
+		my $status = $mults{$mult}{worked};
 
-  if($cnt > (2 * $breakPoint)){
-    $sectList3->insert('end',$ln);
-    next;
-  }
+		unless($mults{$mult}{worked} > 0){
+			$status = $status;
+		}
 
-  if($cnt > $breakPoint){
-    $sectList2->insert('end',$ln);
-    next;
-  }
+		my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$status);
 
- }
+		$SectList{$cur_list}->insert('end',$ln);
+
+	}
 
 }
 
@@ -669,7 +658,7 @@ sub make_window {
  my $aj = $main->Adjuster(-widget => $lf, -side => 'left');
  my $rf = $main->Frame; # right
  my $Msg = $main->Frame; # message frame
- my $bframe = $main->Frame; # bottom
+ my $bottom_frame = $main->Frame; # bottom
 
  # menu bar
  my $mb = $main->Menu(-menuitems => [[qw/command ~Open -accelerator Ctrl-o/,
@@ -679,7 +668,7 @@ sub make_window {
  $main->configure(-menu => $mb);
 
   # pack frames
- $bframe->pack(qw/-side bottom -fill both /);
+ $bottom_frame->pack(qw/-side bottom -fill both /);
  $lf->pack(qw/-side left -fill y/);
  $aj->pack(qw/-side left -fill y/);
  $rf->pack(qw/-side right -fill both -expand l/);
@@ -762,52 +751,23 @@ sub make_window {
               -command => \&toggle_sections,
  	      )->pack(qw/-side left -pady 2/);
 
-
  $lst = $lf->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
  $lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
  $lst->pack(qw/-fill both/);
  $lst->bind('<Double-Button-1>',\&recall_qso);
 
- $sectList1 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
- $sectList1->pack(qw/-side left -fill both/);
- $sectList1->bind('<Double-Button-1>',
-    sub {
- 	my ($sect,$rest) = split / /,$sectList1->get($sectList1->curselection()),2;
-	$Section = $sect;
-	}
- );
-
- $sectList2 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
- $sectList2->pack(qw/-side left -fill both/);
- $sectList2->bind('<Double-Button-1>',
-   sub {
- 	my ($sect,$rest) = split / /,$sectList2->get($sectList2->curselection()),2;
-	$Section = $sect;
-	}
- );
-
- $sectList3 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
- $sectList3->pack(qw/-side left -fill both/);
- $sectList3->bind('<Double-Button-1>',
-    sub {
- 	my ($sect,$rest) = split / /,$sectList3->get($sectList3->curselection()),2;
-	$Section = $sect;
-	}
- );
-
- #$sectList4 = $bframe->Scrolled(qw/Listbox -selectmode single -height 20 e/);
- #$sectList4->pack(qw/-side left -fill both/);
-
- $sectList4 = $bframe->Listbox(-takefocus => 0, -selectmode => single, -width => 26, -height => 21);
- $sectList4->pack(qw/-side left -fill both/);
- $sectList4->bind('<Double-Button-1>',
-    sub {
- 	my ($sect,$rest) = split / /,$sectList4->get($sectList4->curselection()),2;
-	$Section = $sect;
-	}
- );
-
-
+ for my $sl ( 1 .. $SECT_LIST_CNT ) {
+	 $SectList{$sl} = $bottom_frame->Listbox(-takefocus => 0,
+	 																				-selectmode => single,
+																					-width => 26, -height => 21
+																					)->pack(qw/-side left -fill both/);
+	 $SectList{$sl}->bind('<Double-Button-1>',
+	    sub {
+	  		my ($sect,$rest) = split / /,$SectList{$sl}->get($SectList{$sl}->curselection()),2;
+	 			$Section = $sect;
+	 		}
+	 );
+ };
 
  loadlog();
 
