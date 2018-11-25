@@ -397,15 +397,12 @@ sub process_qso {
 
 sub dupe_qso {
 
- # print "dupe_qso $Call\n" if $DEBUG;
-
  if(!defined($Call)){
   $Message = "No Call";
   return;
  }
 
  if(defined($qsos{uc($Call)})){
-    #print "dupe\n";
    reset_qso();
    $Message = "DUPE";
    return 1;
