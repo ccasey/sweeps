@@ -420,29 +420,20 @@ sub dupe_qso {
 
 sub inline_dupe_qso {
 
- # print "dupe_qso $Call\n" if $DEBUG;
-
- #if(!defined($Call)){
- # $Message = "No Call";
- # return;
- #}
-
  my $entry = uc($_[0]);
 
  if(defined($qsos{$entry})){
-   #print "dupe\n";
    my @ta = localtime(($qsos{$entry}{qsotime} + 21600));
    my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
    my $ct = "$ta[2]$ta[1]";
    $Message = "$qsos{$entry}{sserial} : $ta[2]:$ta[1] $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}";
    $Inputs{Call}->configure(-background => red);
-   return 1;
  }else{
   $Message = "GOOD";
   $Inputs{Call}->configure(-background => lightgrey);
-  #print $entry . "\n";
-  return 1;
  }
+
+ return 1;
 
 }
 
