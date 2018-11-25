@@ -144,7 +144,6 @@ BC => { worked => 0, longname => "British Columbia ",},
 NT => { worked => 0, longname => "Northern Territories ",},
 );
 
-
 ##########
 
 sub logit {
@@ -217,6 +216,7 @@ sub printlog {
  foreach (@bar){
   print;
  }
+
 }
 
 ##########
@@ -252,7 +252,6 @@ sub section_stats {
 
  return($m . "/" . $mm);
 
-
 }
 
 ##########
@@ -272,7 +271,6 @@ sub cabrillo {
 
   printf CAB ("QSO: %5s PH %10s %02s%02s %-10s %4s %s %s %3s %-10s %4s %s %s %s\n",
   $qsos{$call}{freq},$cd,$ta[2],$ta[1],"N0VRP",$qsos{$call}{sserial},"A","93","KS ",uc($call),$qsos{$call}{rserial},uc($qsos{$call}{precedence}),$qsos{$call}{check},uc($qsos{$call}{section}));
-
 
  }
 
@@ -363,7 +361,6 @@ sub process_qso {
   $qsos{$Call}{section} = $Section;
   $qsos{$Call}{freq} = $Freq;
 
-
  }else{
   logit("add $totqso $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
 
@@ -389,7 +386,6 @@ sub process_qso {
  reset_qso();
  info	($totqso);
  $Inputs{Call}->focus();
-
 
 }
 
