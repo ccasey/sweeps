@@ -193,10 +193,6 @@ sub loadlog {
 
 ##########
 
-sub reloadlog {
-
-}
-
 sub printlog {
 
  my @bar;
