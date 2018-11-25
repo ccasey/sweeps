@@ -193,22 +193,6 @@ sub loadlog {
 
 ##########
 
-sub printlog {
-
- my @bar;
-
- foreach (keys %qsos){
-  $bar[$qsos{$_}{sserial}] = "$qsos{$_}{sserial} - $qsos{$_}{rserial} $qsos{$_}{precedence} $_ $qsos{$_}{check} $qsos{$_}{section} $qsos{$_}{qsotime} $qsos{$_}{freq} \n";
- }
-
- foreach (@bar){
-  print;
- }
-
-}
-
-##########
-
 sub score {
 
  my $m;
