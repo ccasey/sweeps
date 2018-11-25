@@ -547,7 +547,7 @@ sub load_sections {
 
 	foreach $mult (sort keys %mults ){
 
-
+		# if true, only show needed sections
 		if($sectMode){
 			if($mults{$mult}{worked}){
 				next;
@@ -560,15 +560,14 @@ sub load_sections {
 			$cnt = 1;
 		}
 
-		my $status = $mults{$mult}{worked};
+		my $qso_cnt = $mults{$mult}{worked};
 
-		unless($mults{$mult}{worked} > 0){
-			$status = $status;
-		}
-
-		my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$status);
+		my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$qso_cnt);
 
 		$SectList{$cur_list}->insert('end',$ln);
+		if($qso_cnt){
+			$SectList{$cur_list}->itemconfigure('end', -background => 'lightgreen');
+		}
 
 	}
 
