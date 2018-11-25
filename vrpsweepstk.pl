@@ -161,14 +161,6 @@ sub logit {
 
 ##########
 
-sub prompt {
-
- return score() . "/$totqso > ";
-
-}
-
-##########
-
 sub loadlog {
 
  if( -e $LOGFILE ){
