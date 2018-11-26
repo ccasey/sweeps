@@ -609,24 +609,24 @@ sub make_window {
  $main->configure(-background=>'grey');
 
  # two frames and adjuster
- my $lf = $main->Frame; # left
- my $aj = $main->Adjuster(-widget => $lf, -side => 'left');
- my $rf = $main->Frame; # right
+ my $left_frame = $main->Frame; # left
+ my $adjuster = $main->Adjuster(-widget => $left_frame, -side => 'left');
+ my $right_frame = $main->Frame; # right
  my $Msg = $main->Frame; # message frame
  my $bottom_frame = $main->Frame; # bottom
 
  # menu bar
- my $mb = $main->Menu(-menuitems => [[qw/command ~Open -accelerator Ctrl-o/,
+ my $menu_bar = $main->Menu(-menuitems => [[qw/command ~Open -accelerator Ctrl-o/,
  					-command=>[\&OnFileOpen]]] );
 
  # atach menu to the main window
- $main->configure(-menu => $mb);
+ $main->configure(-menu => $menu_bar);
 
   # pack frames
  $bottom_frame->pack(qw/-side bottom -fill both /);
- $lf->pack(qw/-side left -fill y/);
- $aj->pack(qw/-side left -fill y/);
- $rf->pack(qw/-side right -fill both -expand l/);
+ $left_frame->pack(qw/-side left -fill y/);
+ $adjuster->pack(qw/-side left -fill y/);
+ $right_frame->pack(qw/-side right -fill both -expand l/);
 
 
 
@@ -635,26 +635,26 @@ sub make_window {
  my(@lpl) = qw/-side left/;
 
  foreach $vn ( "Serial", "Precedence"){
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
  }
 
  $vn = "Call";
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-validate        => 'key',
 			    -validatecommand => [\&inline_dupe_qso],
 			    -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
   $vn = "Check";
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
  	$vn = "Section";
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
 	$Inputs{$vn} = $if->Entry(-validate        => 'key',
 					-validatecommand => [\&inline_validate_section],
@@ -665,21 +665,21 @@ sub make_window {
 	if ( $civ_enable ){
 		$Freq = get_rig_freq();
 	}
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
   $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
- $rf->Label(-takefocus => 0, -textvariable => \$Message,
+ $right_frame->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
- $rf->Label(-takefocus => 0, -textvariable => \$Info,
+ $right_frame->Label(-takefocus => 0, -textvariable => \$Info,
             -borderwidth => 2,
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
 
- my $bf = $rf->Frame->pack(qw/-anchor w/);
+ my $bf = $right_frame->Frame->pack(qw/-anchor w/);
 
  $doneButtonTxt = "Done";
  $bf->Button( -takefocus => 0, -textvariable => \$doneButtonTxt,
@@ -706,7 +706,7 @@ sub make_window {
               -command => \&toggle_sections,
  	      )->pack(qw/-side left -pady 2/);
 
- $lst = $lf->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
+ $lst = $left_frame->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
  $lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
  $lst->pack(qw/-fill both/);
  $lst->bind('<Double-Button-1>',\&recall_qso);
