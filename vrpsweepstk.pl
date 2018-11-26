@@ -621,8 +621,6 @@ sub make_window {
  $adjuster->pack(qw/-side left -fill y/);
  $right_frame->pack(qw/-side right -fill both -expand l/);
 
-
-
  # input text
  my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
  my(@lpl) = qw/-side left/;
@@ -735,7 +733,6 @@ sub make_window {
 		$Inputs{"Freq"}->repeat(5000,\&update_freq);
 	}
 
-
  $main->bind("<Control-d>",[\&dupe_qso]);
  $main->bind("<Control-c>",[\&reset_qso]);
  $main->bind("<Return>",[\&process_qso]);
@@ -747,6 +744,5 @@ sub make_window {
 }
 
 ##########
-
 
 make_window();
