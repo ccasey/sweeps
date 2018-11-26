@@ -59,89 +59,89 @@ $update_call;
 $update_given_serial;
 
 %mults = (
-CT => { worked => 0, longname => "Connecticut ",},
-EMA => { worked => 0, longname => "Eastern Massachusetts ",},
-ME => { worked => 0, longname => "Maine ",},
-NH => { worked => 0, longname => "New Hampshire ",},
-RI => { worked => 0, longname => "Rhode Island ",},
-VT => { worked => 0, longname => "Vermont ",},
-WMA => { worked => 0, longname => "Western Massachusetts ",},
-ENY => { worked => 0, longname => "Eastern New York ",},
-NLI => { worked => 0, longname => "New York City - Long Island ",},
-NNJ => { worked => 0, longname => "Northern New Jersey ",},
-NNY => { worked => 0, longname => "Northern New York ",},
-SNJ => { worked => 0, longname => "Southern New Jersey ",},
-WNY => { worked => 0, longname => "Western New York ",},
-DE => { worked => 0, longname => "Delaware ",},
-EPA => { worked => 0, longname => "Eastern Pennsylvania ",},
-MDC => { worked => 0, longname => "Maryland-DC ",},
-WPA => { worked => 0, longname => "Western Pennsylvania ",},
-AL => { worked => 0, longname => "Alabama ",},
-GA => { worked => 0, longname => "Georgia ",},
-KY => { worked => 0, longname => "Kentucky ",},
-NC => { worked => 0, longname => "North Carolina ",},
-NFL => { worked => 0, longname => "Northern Florida ",},
-SC => { worked => 0, longname => "South Carolina ",},
-SFL => { worked => 0, longname => "Southern Florida ",},
-WCF => { worked => 0, longname => "West Central Florida ",},
-TN => { worked => 0, longname => "Tennessee ",},
-VA => { worked => 0, longname => "Virginia ",},
-PR => { worked => 0, longname => "Puerto Rico ",},
-VI => { worked => 0, longname => "Virgin Islands ",},
-AR => { worked => 0, longname => "Arkansas ",},
-LA => { worked => 0, longname => "Louisiana ",},
-MS => { worked => 0, longname => "Mississippi ",},
-NM => { worked => 0, longname => "New Mexico ",},
-NTX => { worked => 0, longname => "North Texas ",},
-OK => { worked => 0, longname => "Oklahoma ",},
-STX => { worked => 0, longname => "South Texas ",},
-WTX => { worked => 0, longname => "West Texas ",},
-EB => { worked => 0, longname => "East Bay ",},
-LAX => { worked => 0, longname => "Los Angeles ",},
-ORG => { worked => 0, longname => "Orange ",},
-SB => { worked => 0, longname => "Santa Barbara ",},
-SCV => { worked => 0, longname => "Santa Clara Valley ",},
-SDG => { worked => 0, longname => "San Diego ",},
-SF => { worked => 0, longname => "San Francisco ",},
-SJV => { worked => 0, longname => "San Joaquin Valley ",},
-SV => { worked => 0, longname => "Sacramento Valley ",},
-PAC => { worked => 0, longname => "Pacific ",},
-AZ => { worked => 0, longname => "Arizona ",},
-EWA => { worked => 0, longname => "Eastern Washington ",},
-ID => { worked => 0, longname => "Idaho ",},
-MT => { worked => 0, longname => "Montana ",},
-NV => { worked => 0, longname => "Nevada ",},
-OR => { worked => 0, longname => "Oregon ",},
-UT => { worked => 0, longname => "Utah ",},
-WWA => { worked => 0, longname => "Western Washington ",},
-WY => { worked => 0, longname => "Wyoming ",},
-AK => { worked => 0, longname => "Alaska ",},
-MI => { worked => 0, longname => "Michigan ",},
-OH => { worked => 0, longname => "Ohio ",},
-WV => { worked => 0, longname => "West Virginia ",},
-IL => { worked => 0, longname => "Illinois ",},
-IN => { worked => 0, longname => "Indiana ",},
-WI => { worked => 0, longname => "Wisconsin ",},
-CO => { worked => 0, longname => "Colorado ",},
-IA => { worked => 0, longname => "Iowa ",},
-KS => { worked => 0, longname => "Kansas ",},
-MN => { worked => 0, longname => "Minnesota ",},
-MO => { worked => 0, longname => "Missouri ",},
-NE => { worked => 0, longname => "Nebraska ",},
-ND => { worked => 0, longname => "North Dakota ",},
-SD => { worked => 0, longname => "South Dakota ",},
-MAR => { worked => 0, longname => "Maritime ",},
-NL => { worked => 0, longname => "Newfoundland/Labrador ",},
-QC => { worked => 0, longname => "Quebec ",},
-ONE => { worked => 0, longname => "Ontario East ",},
-ONN => { worked => 0, longname => "Ontario North ",},
-ONS => { worked => 0, longname => "Ontario South ",},
-GTA => { worked => 0, longname => "Greater Toronto Area ",},
-MB => { worked => 0, longname => "Manitoba ",},
-SK => { worked => 0, longname => "Saskatchewan ",},
-AB => { worked => 0, longname => "Alberta ",},
-BC => { worked => 0, longname => "British Columbia ",},
-NT => { worked => 0, longname => "Northern Territories ",},
+CT => { worked => 0, longname => "Connecticut",},
+EMA => { worked => 0, longname => "Eastern Massachusetts",},
+ME => { worked => 0, longname => "Maine",},
+NH => { worked => 0, longname => "New Hampshire",},
+RI => { worked => 0, longname => "Rhode Island",},
+VT => { worked => 0, longname => "Vermont",},
+WMA => { worked => 0, longname => "Western Massachusetts",},
+ENY => { worked => 0, longname => "Eastern New York",},
+NLI => { worked => 0, longname => "New York City - Long Island",},
+NNJ => { worked => 0, longname => "Northern New Jersey",},
+NNY => { worked => 0, longname => "Northern New York",},
+SNJ => { worked => 0, longname => "Southern New Jersey",},
+WNY => { worked => 0, longname => "Western New York",},
+DE => { worked => 0, longname => "Delaware",},
+EPA => { worked => 0, longname => "Eastern Pennsylvania",},
+MDC => { worked => 0, longname => "Maryland-DC",},
+WPA => { worked => 0, longname => "Western Pennsylvania",},
+AL => { worked => 0, longname => "Alabama",},
+GA => { worked => 0, longname => "Georgia",},
+KY => { worked => 0, longname => "Kentucky",},
+NC => { worked => 0, longname => "North Carolina",},
+NFL => { worked => 0, longname => "Northern Florida",},
+SC => { worked => 0, longname => "South Carolina",},
+SFL => { worked => 0, longname => "Southern Florida",},
+WCF => { worked => 0, longname => "West Central Florida",},
+TN => { worked => 0, longname => "Tennessee",},
+VA => { worked => 0, longname => "Virginia",},
+PR => { worked => 0, longname => "Puerto Rico",},
+VI => { worked => 0, longname => "Virgin Islands",},
+AR => { worked => 0, longname => "Arkansas",},
+LA => { worked => 0, longname => "Louisiana",},
+MS => { worked => 0, longname => "Mississippi",},
+NM => { worked => 0, longname => "New Mexico",},
+NTX => { worked => 0, longname => "North Texas",},
+OK => { worked => 0, longname => "Oklahoma",},
+STX => { worked => 0, longname => "South Texas",},
+WTX => { worked => 0, longname => "West Texas",},
+EB => { worked => 0, longname => "East Bay",},
+LAX => { worked => 0, longname => "Los Angeles",},
+ORG => { worked => 0, longname => "Orange",},
+SB => { worked => 0, longname => "Santa Barbara",},
+SCV => { worked => 0, longname => "Santa Clara Valley",},
+SDG => { worked => 0, longname => "San Diego",},
+SF => { worked => 0, longname => "San Francisco",},
+SJV => { worked => 0, longname => "San Joaquin Valley",},
+SV => { worked => 0, longname => "Sacramento Valley",},
+PAC => { worked => 0, longname => "Pacific",},
+AZ => { worked => 0, longname => "Arizona",},
+EWA => { worked => 0, longname => "Eastern Washington",},
+ID => { worked => 0, longname => "Idaho",},
+MT => { worked => 0, longname => "Montana",},
+NV => { worked => 0, longname => "Nevada",},
+OR => { worked => 0, longname => "Oregon",},
+UT => { worked => 0, longname => "Utah",},
+WWA => { worked => 0, longname => "Western Washington",},
+WY => { worked => 0, longname => "Wyoming",},
+AK => { worked => 0, longname => "Alaska",},
+MI => { worked => 0, longname => "Michigan",},
+OH => { worked => 0, longname => "Ohio",},
+WV => { worked => 0, longname => "West Virginia",},
+IL => { worked => 0, longname => "Illinois",},
+IN => { worked => 0, longname => "Indiana",},
+WI => { worked => 0, longname => "Wisconsin",},
+CO => { worked => 0, longname => "Colorado",},
+IA => { worked => 0, longname => "Iowa",},
+KS => { worked => 0, longname => "Kansas",},
+MN => { worked => 0, longname => "Minnesota",},
+MO => { worked => 0, longname => "Missouri",},
+NE => { worked => 0, longname => "Nebraska",},
+ND => { worked => 0, longname => "North Dakota",},
+SD => { worked => 0, longname => "South Dakota",},
+MAR => { worked => 0, longname => "Maritime",},
+NL => { worked => 0, longname => "Newfoundland/Labrador",},
+QC => { worked => 0, longname => "Quebec",},
+ONE => { worked => 0, longname => "Ontario East",},
+ONN => { worked => 0, longname => "Ontario North",},
+ONS => { worked => 0, longname => "Ontario South",},
+GTA => { worked => 0, longname => "Greater Toronto Area",},
+MB => { worked => 0, longname => "Manitoba",},
+SK => { worked => 0, longname => "Saskatchewan",},
+AB => { worked => 0, longname => "Alberta",},
+BC => { worked => 0, longname => "British Columbia",},
+NT => { worked => 0, longname => "Northern Territories",},
 );
 
 ##########
@@ -609,52 +609,43 @@ sub make_window {
  $main->configure(-background=>'grey');
 
  # two frames and adjuster
- my $lf = $main->Frame; # left
- my $aj = $main->Adjuster(-widget => $lf, -side => 'left');
- my $rf = $main->Frame; # right
+ my $left_frame = $main->Frame; # left
+ my $adjuster = $main->Adjuster(-widget => $left_frame, -side => 'left');
+ my $right_frame = $main->Frame; # right
  my $Msg = $main->Frame; # message frame
  my $bottom_frame = $main->Frame; # bottom
 
- # menu bar
- my $mb = $main->Menu(-menuitems => [[qw/command ~Open -accelerator Ctrl-o/,
- 					-command=>[\&OnFileOpen]]] );
-
- # atach menu to the main window
- $main->configure(-menu => $mb);
-
   # pack frames
  $bottom_frame->pack(qw/-side bottom -fill both /);
- $lf->pack(qw/-side left -fill y/);
- $aj->pack(qw/-side left -fill y/);
- $rf->pack(qw/-side right -fill both -expand l/);
-
-
+ $left_frame->pack(qw/-side left -fill y/);
+ $adjuster->pack(qw/-side left -fill y/);
+ $right_frame->pack(qw/-side right -fill both -expand l/);
 
  # input text
  my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
  my(@lpl) = qw/-side left/;
 
  foreach $vn ( "Serial", "Precedence"){
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
  }
 
  $vn = "Call";
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-validate        => 'key',
 			    -validatecommand => [\&inline_dupe_qso],
 			    -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
   $vn = "Check";
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
  	$vn = "Section";
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
 	$Inputs{$vn} = $if->Entry(-validate        => 'key',
 					-validatecommand => [\&inline_validate_section],
@@ -665,21 +656,21 @@ sub make_window {
 	if ( $civ_enable ){
 		$Freq = get_rig_freq();
 	}
-  my $if = $rf->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
   $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
- $rf->Label(-takefocus => 0, -textvariable => \$Message,
+ $right_frame->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
- $rf->Label(-takefocus => 0, -textvariable => \$Info,
+ $right_frame->Label(-takefocus => 0, -textvariable => \$Info,
             -borderwidth => 2,
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
 
- my $bf = $rf->Frame->pack(qw/-anchor w/);
+ my $bf = $right_frame->Frame->pack(qw/-anchor w/);
 
  $doneButtonTxt = "Done";
  $bf->Button( -takefocus => 0, -textvariable => \$doneButtonTxt,
@@ -706,7 +697,7 @@ sub make_window {
               -command => \&toggle_sections,
  	      )->pack(qw/-side left -pady 2/);
 
- $lst = $lf->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
+ $lst = $left_frame->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
  $lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
  $lst->pack(qw/-fill both/);
  $lst->bind('<Double-Button-1>',\&recall_qso);
@@ -734,14 +725,12 @@ sub make_window {
 
  $Inputs{Serial}->focus();
 
-
   if ( $civ_enable ) {
 		$Telltale{Freq}->configure(-text => "civ enabled");
 		$Telltale{Freq}->update();
 		sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
 		$Inputs{"Freq"}->repeat(5000,\&update_freq);
 	}
-
 
  $main->bind("<Control-d>",[\&dupe_qso]);
  $main->bind("<Control-c>",[\&reset_qso]);
@@ -754,6 +743,5 @@ sub make_window {
 }
 
 ##########
-
 
 make_window();
