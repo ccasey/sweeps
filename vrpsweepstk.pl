@@ -615,13 +615,6 @@ sub make_window {
  my $Msg = $main->Frame; # message frame
  my $bottom_frame = $main->Frame; # bottom
 
- # menu bar
- my $menu_bar = $main->Menu(-menuitems => [[qw/command ~Open -accelerator Ctrl-o/,
- 					-command=>[\&OnFileOpen]]] );
-
- # atach menu to the main window
- $main->configure(-menu => $menu_bar);
-
   # pack frames
  $bottom_frame->pack(qw/-side bottom -fill both /);
  $left_frame->pack(qw/-side left -fill y/);
