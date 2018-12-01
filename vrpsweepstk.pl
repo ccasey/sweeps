@@ -298,11 +298,6 @@ sub get_entry_refs {
 
 ##########
 
-sub validate_qso {
-
-}
-##########
-
 sub process_qso_entry {
 
   #print "process_qso $Serial $Precedence $Call $Check $Section\n" if $DEBUG;
@@ -960,12 +955,10 @@ sub make_window {
   $main_window->bind("<Control-t>",[\&toggle_sections]);
   $main_window->bind("<Shift-Right>",
     sub {
-      print "page right\n";
       $notebook->raise($notebook->info("focusnext"));
     });
   $main_window->bind("<Shift-Left>",
     sub {
-      print "page left\n";
       $notebook->raise($notebook->info("focusprev"));
     });
 
