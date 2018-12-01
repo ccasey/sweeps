@@ -20,6 +20,7 @@ use Tk::Menu;
 use Tk::Menubutton;
 use Tk::Adjuster;
 use Tk::DialogBox;
+use Tk::NoteBook;
 
 use POSIX qw(ceil);
 
@@ -43,6 +44,9 @@ $message;
 $sectMode = 0;
 $SECT_LIST_CNT = 4; # how many columns of sections to display
 
+$geom_x ="760";
+$geom_y ="640";
+
 $mycall = "N0VRP";
 $myprec = "M";
 $mysection = "NTX";
@@ -58,7 +62,20 @@ $last_qso;
 $update_call;
 $update_given_serial;
 
-%mults = (
+my $notebook;
+my %Telltale;
+my %Inputs;
+
+my %precedences = (
+  Q => "Single Op QRP",
+  A => "Single Op Low Power",
+  B => "Single Op High Power",
+  U => "Single Op Unlimited",
+  M => "Multi-Op",
+  S => " School Club",
+);
+
+my %mults = (
 CT => { worked => 0, longname => "Connecticut",},
 EMA => { worked => 0, longname => "Eastern Massachusetts",},
 ME => { worked => 0, longname => "Maine",},
@@ -148,14 +165,14 @@ NT => { worked => 0, longname => "Northern Territories",},
 
 sub logit {
 
- my $logln = shift(@_);
+	my $logln = shift(@_);
 
- open(FH,">>$LOGFILE")
-  or die "cant open $LOGFILE: $!\n";
+	open(FH,">>$LOGFILE")
+ 	or die "cant open $LOGFILE: $!\n";
 
- print FH $logln;
+	print FH $logln;
 
- close(FH);
+	close(FH);
 
 }
 
@@ -163,28 +180,27 @@ sub logit {
 
 sub loadlog {
 
- if( -e $LOGFILE ){
-  open(LL,"<$LOGFILE")
-   or die "cant open $LOGFILE: $!\n";
- }
+ 	if( -e $LOGFILE ){
+  	open(LL,"<$LOGFILE")
+   	or die "cant open $LOGFILE: $!\n";
+ 	}
   while(<LL>){
-   chomp;
-   my @foo = split;
+   	chomp;
+   	my @foo = split;
 
-   if($foo[0] =~ /del/){
-    if($mults{$qsos{$foo[1]}{section}}{worked}){
-     $mults{$qsos{$foo[1]}{section}}{worked}--;
-    }
-    delete($qsos{$foo[1]});
-    $totqso--;
-   }else{
-    $qsos{$foo[4]} = { sserial => $foo[1], rserial => $foo[2], precedence => $foo[3], check => $foo[5],
-                       section => $foo[6], qsotime => $foo[7], freq => $foo[8]};
-    $mults{$foo[6]}{worked}++;
-    $totqso = $foo[1];
-    $last_qso = $foo[4];
-    $Freq = $foo[8];
-   }
+   	if($foo[0] =~ /del/){
+    	if($mults{$qsos{$foo[1]}{section}}{worked}){
+     		$mults{$qsos{$foo[1]}{section}}{worked}--;
+    	}
+			delete($qsos{$foo[1]});
+   	}else{
+    	$qsos{$foo[4]} = { sserial => $foo[1], rserial => $foo[2], precedence => $foo[3], check => $foo[5],
+                      	section => $foo[6], qsotime => $foo[7], freq => $foo[8]};
+    	$mults{$foo[6]}{worked}++;
+    	$last_qso = $foo[4];
+    	$Freq = $foo[8];
+   	}
+    $totqso = keys %qsos;
   }
 
   close(LL);
@@ -195,14 +211,13 @@ sub loadlog {
 
 sub score {
 
- my $m;
+ 	my $m;
 
- foreach (keys %mults){
-  if ($mults{$_}{worked}){
-   $m += 1;
+ 	foreach (keys %mults){
+  	if ($mults{$_}{worked}){
+   		$m += 1;
+  	}
   }
-  #print $m . "\n";
- }
 
  return ($m * ($totqso*2));
 
@@ -215,149 +230,227 @@ sub section_stats {
   my $m;
   my $mm;
 
- foreach (keys %mults){
-  if ($mults{$_}{worked}){
-   $m += 1;
+  foreach (keys %mults){
+    if ($mults{$_}{worked}){
+      $m += 1;
+    }
+    $mm += 1;
   }
-  $mm += 1;
- }
 
- return($m . "/" . $mm);
+  return($m . "/" . $mm);
 
 }
 
 ##########
 
 sub cabrillo {
- foreach (keys %qsos){
-   $bar[$qsos{$_}{sserial}] = "$_";
- }
- open(CAB, ">$CABFILE")
-  or die "no cabfile workie: $!";
+  foreach (keys %qsos){
+    $bar[$qsos{$_}{sserial}] = "$_";
+  }
+  open(CAB, ">$CABFILE")
+    or die "no cabfile workie: $!";
 
- foreach $call (@bar){
- unless($call){next;}
-  my @ta = localtime(($qsos{$call}{qsotime} + 21600));
-  my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
-  my $ct = "$ta[2]$ta[1]";
+  foreach $call (@bar){
+    unless($call){next;}
+    my @ta = localtime(($qsos{$call}{qsotime} + 21600));
+    my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
+    my $ct = "$ta[2]$ta[1]";
 
-  printf CAB ("QSO: %5s PH %10s %02s%02s %-10s %4s %s %s %3s %-10s %4s %s %s %s\n",
-  $qsos{$call}{freq},$cd,$ta[2],$ta[1],"N0VRP",$qsos{$call}{sserial},"A","93","KS ",uc($call),$qsos{$call}{rserial},uc($qsos{$call}{precedence}),$qsos{$call}{check},uc($qsos{$call}{section}));
+    printf CAB ("QSO: %5s PH %10s %02s%02s %-10s %4s %s %s %3s %-10s %4s %s %s %s\n",
+    $qsos{$call}{freq},$cd,$ta[2],$ta[1],"N0VRP",$qsos{$call}{sserial},"A","93","KS ",uc($call),$qsos{$call}{rserial},uc($qsos{$call}{precedence}),$qsos{$call}{check},uc($qsos{$call}{section}));
+  }
 
- }
+  close(CAB);
 
- close(CAB);
+}
+##########
+
+sub get_entry_refs {
+
+  my %entry_ref_hash;
+
+  if($notebook->raised() eq "entry_page"){
+    my %entry_ref_hash = (
+      message => \$Message,
+      serial => \$Serial,
+      precedence => \$Precedence,
+      call => \$Call,
+      check => \$Check,
+      section => \$Section,
+      freq => \$Freq,
+    );
+    return %entry_ref_hash;
+
+  } elsif ($notebook->raised() eq "edit_page"){
+    my %entry_ref_hash = (
+      message => \$Edit_Message,
+      serial => \$Edit_Serial,
+      precedence => \$Edit_Precedence,
+      call => \$Edit_Call,
+      check => \$Edit_Check,
+      section => \$Edit_Section,
+      freq => \$Edit_Freq,
+    );
+    return %entry_ref_hash;
+  }
 
 }
 
 ##########
 
-sub process_qso {
+sub validate_qso {
 
- #print "process_qso $Serial $Precedence $Call $Check $Section\n" if $DEBUG;
- my $qsotime = time();
- undef($message);
+}
+##########
 
- # check for dupe
+sub process_qso_entry {
 
- if($doneButtonTxt eq "Done"){
+  #print "process_qso $Serial $Precedence $Call $Check $Section\n" if $DEBUG;
+  my $qsotime = time();
+  undef($message);
+
   if(dupe_qso()){
-    reset_qso();
+      reset_qso();
+      return;
+  }
+
+  # check to see if we have everything
+  undef($Message);
+
+  unless(defined($Serial) && $Serial =~ /^\d+$/ ){
+    $Message = $Message . "Bad Serial... ";
+  }
+
+  unless(defined($Precedence) && exists($precedences{$Precedence})){
+    $Message = $Message . "Bad Precedence... ";
+  }
+
+  unless(defined($Call)){
+    $Message = $Message . "Bad Call... ";
+  }
+
+  unless(defined($Check) && $Check =~ /^\d+$/){
+    $Message = $Message . "Bad Check... ";
+  }
+
+  unless(defined($Section)){
+    $Message = $Message . "Bad Section... ";
+  } else {
+    unless(defined($mults{uc($Section)})){
+      $Message = $Message . "WRONG SECTION...";
+    }
+  }
+
+  unless(defined($Freq) && $Freq =~ /^\d+$/){
+    $Message = $Message . "Bad Freq... ";
+  }
+
+  if(defined($Message)){
     return;
   }
- }
 
- # check to see if we have everything
+  $Section = uc($Section);
+  $Call = uc($Call);
+  $Precedence = uc($Precedence);
 
- undef($Message);
-
- unless(defined($Serial)){
-  $Message = $Message . "No Serial... ";
- }
-
- unless(defined($Precedence)){
-  $Message = $Message . "No Precedence... ";
- }
-
- unless(defined($Call)){
-  $Message = $Message . "No Call... ";
- }
-
- unless(defined($Check)){
-  $Message = $Message . "No Check... ";
- }
-
- unless(defined($Section)){
-  $Message = $Message . "No Section... ";
- } else {
-  unless(defined($mults{uc($Section)})){
-   $Message = $Message . "WRONG SECTION...";
-  }
- }
-
- if(defined($Message)){
-  return;
- }
-
- if($doneButtonTxt eq "Done"){
-  $totqso++;
- }
-
- if(defined($update_call)){
-  $qsotime = $qsos{$update_call}{qsotime};
- }
-
- if(($update_call ne $Call) &&  (defined($update_call))){
-  #$qsotime = $qsos{$update_call}{qsotime};
-  delete($qsos{$update_call});
-  logit("del $update_call\n");
-  #undef($update_call);
- }
-
- $Section = uc($Section);
- $Call = uc($Call);
- $Precedence = uc($Precedence);
-
- if($update_given_serial){
-  logit("add $update_given_serial $Serial $Precedence $Call $Check $Section $update_qsotime $Freq\n");
-  undef($update_given_serial);
-
-  $qsos{$Call}{rserial} = $Serial;
-  $qsos{$Call}{precedence} = $Precedence;
-  $qsos{$Call}{check} = $Check;
-
-  if($Section ne $qsos{$Call}{section}){
-   $mults{$Section}{worked}++;
-   $mults{$qsos{$Call}{section}}{worked}--;
-  }
-  $qsos{$Call}{section} = $Section;
-  $qsos{$Call}{freq} = $Freq;
-
- }else{
   logit("add $totqso $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
 
   $qsos{$Call} = { sserial => $totqso,
-                    rserial => $Serial,
-		    precedence => $Precedence,
-		    check => $Check,
-		    section => $Section,
-		    freq => $Freq,
-		    qsotime => $qsotime};
+                   rserial => $Serial,
+		               precedence => $Precedence,
+		               check => $Check,
+		               section => $Section,
+		               freq => $Freq,
+		               qsotime => $qsotime,
+                 };
 
+	 $mults{$Section}{worked}++;
 
-		    $mults{$Section}{worked}++;
- }
+  load_list();
+  load_sections();
 
- undef($update_call);
- undef($update_given_serial);
- undef($update_qsotime);
- $doneButtonTxt = "Done";
- load_list();
- load_sections();
+  reset_qso();
+  info	($totqso);
+  $Inputs{Call}->focus();
 
- reset_qso();
- info	($totqso);
- $Inputs{Call}->focus();
+}
+
+##########
+
+sub process_qso_edit {
+
+  #print "process_qso $Edit_Serial $Edit_Precedence $Edit_Call $Edit_Check $Edit_Section\n" if $DEBUG;
+
+  undef($Edit_Message);
+
+  unless(defined($Edit_Serial) && $Edit_Serial =~ /^\d+$/ ){
+    $Edit_Message = $Edit_Message . "Bad Serial... ";
+  }
+
+  unless(defined($Edit_Precedence) && exists($precedences{$Edit_Precedence})){
+    $Edit_Message = $Edit_Message . "Bad Precedence... ";
+  }
+
+  unless(defined($Edit_Call)){
+    $Edit_Message = $Edit_Message . "Bad Call... ";
+  }
+
+  unless(defined($Edit_Check) && $Edit_Check =~ /^\d+$/){
+    $Edit_Message = $Edit_Message . "Bad Check... ";
+  }
+
+  unless(defined($Edit_Section)){
+    $Edit_Message = $Edit_Message . "Bad Section... ";
+  } else {
+    unless(defined($mults{uc($Edit_Section)})){
+      $Edit_Message = $Edit_Message . "WRONG SECTION...";
+    }
+  }
+
+  unless(defined($Edit_Freq) && $Edit_Freq =~ /^\d+$/){
+    $Edit_Message = $Edit_Message . "Bad Freq... ";
+  }
+
+  if(defined($Edit_Message)){
+    return;
+  }
+
+  if($update_call ne $Edit_Call){
+    delete($qsos{$update_call});
+    logit("del $update_call\n");
+  }
+
+  $Edit_Section = uc($Edit_Section);
+  $Edit_Call = uc($Edit_Call);
+  $Edit_Precedence = uc($Edit_Precedence);
+
+  logit("add $update_given_serial $Edit_Serial $Edit_Precedence $Edit_Call $Edit_Check $Edit_Section $update_qsotime $Edit_Freq\n");
+
+  $qsos{$Edit_Call}{sserial} = $update_given_serial;
+  $qsos{$Edit_Call}{rserial} = $Edit_Serial;
+  $qsos{$Edit_Call}{precedence} = $Edit_Precedence;
+  $qsos{$Edit_Call}{check} = $Edit_Check;
+  $qsos{$Edit_Call}{qsotime} = $update_qsotime;
+
+  # if we change the section, adjust accordingly
+  if($Edit_Section ne $qsos{$Edit_Call}{section}){
+    $mults{$Edit_Section}{worked}++;
+    $mults{$qsos{$Edit_Call}{section}}{worked}--;
+  }
+
+  $qsos{$Edit_Call}{section} = $Edit_Section;
+  $qsos{$Edit_Call}{freq} = $Edit_Freq;
+
+  undef($update_call);
+  undef($update_given_serial);
+  undef($update_qsotime);
+
+  load_list();
+  load_sections();
+
+  reset_qso();
+  info	($totqso);
+  $Inputs{Call}->focus();
 
 }
 
@@ -365,19 +458,19 @@ sub process_qso {
 
 sub dupe_qso {
 
- if(!defined($Call)){
-  $Message = "No Call";
-  return;
- }
+  if(!defined($Call)){
+    $Message = "No Call";
+    return;
+  }
 
- if(defined($qsos{uc($Call)})){
-   reset_qso();
-   $Message = "DUPE";
-   return 1;
- }else{
-  $Message = "GOOD";
-  return 0;
- }
+  if(defined($qsos{uc($Call)})){
+    reset_qso();
+    $Message = "DUPE";
+    return 1;
+  }else{
+    $Message = "GOOD";
+    return 0;
+  }
 
 }
 
@@ -385,20 +478,20 @@ sub dupe_qso {
 
 sub inline_dupe_qso {
 
- my $entry = uc($_[0]);
+  my $entry = uc($_[0]);
 
- if(defined($qsos{$entry})){
-   my @ta = localtime(($qsos{$entry}{qsotime} + 21600));
-   my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
-   my $ct = "$ta[2]$ta[1]";
-   $Message = "$qsos{$entry}{sserial} : $ta[2]:$ta[1] $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}";
-   $Inputs{Call}->configure(-background => red);
- }else{
-  $Message = "GOOD";
-  $Inputs{Call}->configure(-background => lightgrey);
- }
+  if(defined($qsos{$entry})){
+    my @ta = localtime(($qsos{$entry}{qsotime} + 21600));
+    my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
+    my $ct = "$ta[2]$ta[1]";
+    $Message = "$qsos{$entry}{sserial} : $ta[2]:$ta[1] $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}";
+    $Inputs{Call}->configure(-background => red);
+  }else{
+    $Message = "GOOD";
+    $Inputs{Call}->configure(-background => lightgrey);
+  }
 
- return 1;
+  return 1;
 
 }
 
@@ -406,14 +499,25 @@ sub inline_dupe_qso {
 
 sub inline_validate_section {
 	my $entry = uc(shift);
-	#print "$entry\n";
+
+  my $inputs_ref;
+  my $telltale_ref;
+
+  if($notebook->raised() eq "entry_page"){
+    $inputs_ref = \$Inputs{Section};
+    $telltale_ref = \$Telltale{Section};
+  } elsif ($notebook->raised() eq "edit_page"){
+    $inputs_ref = \$Edit_Inputs{Section};
+    $telltale_ref = \$Edit_Telltale{Section};
+  }
+
 	if(defined($mults{$entry}) || !$entry){
-		$Inputs{Section}->configure(-background => lightgrey);
-		$Telltale{Section}->configure(-text => "$mults{$entry}{longname}");
+	  $$inputs_ref->configure(-background => lightgrey);
+		$$telltale_ref->configure(-text => "$mults{$entry}{longname}");
 		return 1;
 	} else {
-		$Inputs{Section}->configure(-background => red);
-		$Telltale{Section}->configure(-text => "");
+		$$inputs_ref->configure(-background => red);
+		$$telltale_ref->configure(-text => "");
 		return 1;
 	}
 }
@@ -427,11 +531,11 @@ sub sort_by_timestamp{
 ##########
 sub info {
 
- my $serial = 1 + shift(@_);
+  my $serial = 1 + shift(@_);
 
- $Info = "$serial  $myprec  $mycall  $mycheck  $mysection";
- $Info = "$Info        score: " . score();
- $Info = "$Info        sects: " . section_stats();
+  $Info = "$serial  $myprec  $mycall  $mycheck  $mysection";
+
+  $Score = "score: " . score() . " sects: " . section_stats();
 
 }
 
@@ -439,29 +543,41 @@ sub info {
 
 sub reset_qso {
 
- undef($Serial);
- undef($Precedence);
- undef($Call);
- undef($Check);
- undef($Section);
+  my $raised_page = $notebook->raised();
 
- undef($Message);
+  if ($raised_page eq "entry_page"){
+    undef($Serial);
+    undef($Precedence);
+    undef($Call);
+    undef($Check);
+    undef($Section);
+    undef($Message);
+    $Inputs{Call}->focus();
+  } elsif ($raised_page eq "edit_page"){
+    undef($Edit_Serial);
+    undef($Edit_Precedence);
+    undef($Edit_Call);
+    undef($Edit_Check);
+    undef($Edit_Section);
+    undef($Edit_Message);
+    $Edit_Inputs{Call}->focus();
+  }
+  undef($update_call);
 
- undef($update_call);
-
- $Inputs{Call}->focus();
- $doneButtonTxt = "Done";
+  $doneButtonTxt = "Done";
 
 }
 
 ##########
 sub load_list {
 
- $lst->delete(0, 'end');
+	$lst->delete(0, 'end');
+	$edit_lst->delete(0, 'end');
 
- foreach $entry (sort sort_by_timestamp keys %qsos ){
-  $lst->insert(0,"$qsos{$entry}{sserial} : $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}");
- }
+  foreach $entry (sort sort_by_timestamp keys %qsos ){
+    $lst->insert(0,"$qsos{$entry}{sserial} : $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}");
+    $edit_lst->insert(0,"$qsos{$entry}{sserial} : $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}");
+  }
 
 }
 
@@ -469,14 +585,14 @@ sub load_list {
 
 sub toggle_sections {
 
- if($sectMode){
-  $sectMode = 0;
- } else {
-  $sectMode = 1;
- }
+  if($sectMode){
+    $sectMode = 0;
+  } else {
+    $sectMode = 1;
+  }
 
- clear_sections();
- load_sections();
+  clear_sections();
+  load_sections();
 
 }
 
@@ -484,9 +600,9 @@ sub toggle_sections {
 
 sub clear_sections {
 
- for my $list (keys %SectList) {
-	 $SectList{$list}->delete(0,"end");
- };
+  for my $list (keys %SectList) {
+	  $SectList{$list}->delete(0,"end");
+  };
 
 }
 
@@ -494,31 +610,30 @@ sub clear_sections {
 
 sub load_sections {
 
-	my $sect_cnt = keys %mults;
-	my $break_point = ceil($sect_cnt / $SECT_LIST_CNT);
-	my $cnt = 0;
-	my $cur_list = 1;
+  my $sect_cnt = keys %mults;
+  my $break_point = ceil($sect_cnt / $SECT_LIST_CNT);
+  my $cnt = 0;
+  my $cur_list = 1;
 
-	clear_sections();
+  clear_sections();
 
-	foreach $mult (sort keys %mults ){
+  foreach $mult (sort keys %mults ){
 
-		# if true, only show needed sections
-		if($sectMode){
-			if($mults{$mult}{worked}){
-				next;
-			}
+	  # if true, only show needed sections
+    if($sectMode){
+		  if($mults{$mult}{worked}){
+		    next;
+		  }
+	  }
+
+    $cnt++;
+    if($cnt > $break_point){
+      $cur_list++;
+      $cnt = 1;
 		}
 
-		$cnt++;
-		if($cnt > $break_point){
-			$cur_list++;
-			$cnt = 1;
-		}
-
-		my $qso_cnt = $mults{$mult}{worked};
-
-		my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$qso_cnt);
+    my $qso_cnt = $mults{$mult}{worked};
+    my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$qso_cnt);
 
 		$SectList{$cur_list}->insert('end',$ln);
 		if($qso_cnt){
@@ -531,20 +646,22 @@ sub load_sections {
 
 ##########
 
+# FIX load_list call
 sub delete_qso {
 
- if(defined($Call)){
-  logit("del $Call\n");
-  $mults{$qsos{$Call}{section}}{worked}--;
-  $totqso--;
-  delete($qsos{$Call});
-  reset_qso();
-  info($totqso);
-  load_list();
-  load_sections();
- }else{
-  $Message = "No qso selected";
- }
+  if(defined($Edit_Call)){
+    logit("del $Edit_Call\n");
+    $mults{$qsos{$Edit_Call}{section}}{worked}--;
+    delete($qsos{$Edit_Call});
+    $totqso = keys %qsos;
+    reset_qso();
+    info($totqso);
+    load_list();
+    load_sections();
+    reset_qso();
+  }else{
+    $Message = "No qso selected";
+  }
 
 }
 
@@ -552,24 +669,30 @@ sub delete_qso {
 
 sub recall_qso {
 
- #print "recalling selected qso \n";
+  # load qso into edit page
 
- $doneButtonTxt = "Update";
+  my $which_focus = $notebook->raised();
 
- my $r_qso = $lst->get($lst->curselection());
+  # whichever list we click on, get the qso
+  if ($which_focus eq 'edit_page'){
+    $r_qso = $edit_lst->get($edit_lst->curselection());
+  } else {
+    $r_qso = $lst->get($lst->curselection());
+  }
 
- #print $r_qso . "\n";
+  # go to edit page
+  $notebook->raise('edit_page');
 
- my @qso_elements = split /\s+/, $r_qso;
+  my @qso_elements = split /\s+/, $r_qso;
 
- #print $qso_elements[4] . "\n";
+  #print $qso_elements[4] . "\n";
 
- ($foo, $bar, $Serial,$Precedence,$Call,$Check,$Section,$Freq) = split /\s+/, $r_qso;
+  ($foo, $bar, $Edit_Serial,$Edit_Precedence,$Edit_Call,$Edit_Check,$Edit_Section,$Edit_Freq) = split /\s+/, $r_qso;
 
- $update_qsotime = $qsos{$Call}{qsotime};
- $update_given_serial = $foo;
- $update_call = $Call;
- #$update_time =
+  $update_qsotime = $qsos{$Edit_Call}{qsotime};
+  $update_given_serial = $foo;
+  $update_call = $Edit_Call;
+  #$update_time =
 
 }
 
@@ -603,36 +726,44 @@ sub get_rig_freq {
 ##########
 sub make_window {
 
- my $main = MainWindow->new();
- $main->geometry('760x640');
- $main->title("VRP sweeps");
- $main->configure(-background=>'grey');
+  my $main_window = MainWindow->new();
+  $main_window->geometry($geom_x . "x" . $geom_y);
+  $main_window->title("VRP sweeps");
+  $main_window->configure(-background=>'grey');
 
- # two frames and adjuster
- my $left_frame = $main->Frame; # left
- my $adjuster = $main->Adjuster(-widget => $left_frame, -side => 'left');
- my $right_frame = $main->Frame; # right
- my $Msg = $main->Frame; # message frame
- my $bottom_frame = $main->Frame; # bottom
+  # tabs.... er notebook...
 
-  # pack frames
- $bottom_frame->pack(qw/-side bottom -fill both /);
- $left_frame->pack(qw/-side left -fill y/);
- $adjuster->pack(qw/-side left -fill y/);
- $right_frame->pack(qw/-side right -fill both -expand l/);
+  $notebook = $main_window->NoteBook(-takefocus => 0)->pack(-expand => 1, -fill => 'both');
+  $notebook->configure( -takefocus, 0 );
 
- # input text
- my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
- my(@lpl) = qw/-side left/;
+  my $entry_page = $notebook->add('entry_page',
+                                  -label => 'Entry',
+                                  -raisecmd => sub {$Inputs{Call}->focus()});
 
- foreach $vn ( "Serial", "Precedence"){
-  my $if = $right_frame->Frame->pack(qw/-anchor w/);
-  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
-  $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  # two frames and adjuster
+  my $left_frame = $entry_page->Frame; # left
+  my $adjuster = $entry_page->Adjuster(-widget => $left_frame, -side => 'left');
+  my $right_frame = $entry_page->Frame; # right
+  my $Msg = $entry_page->Frame; # message frame
+  my $bottom_frame = $entry_page->Frame; # bottom
 
- }
+  # pack framesa
+  $bottom_frame->pack(qw/-side bottom -fill both /);
+  $left_frame->pack(qw/-side left -fill y/);
+  $adjuster->pack(qw/-side left -fill y/);
+  $right_frame->pack(qw/-side right -fill both -expand l/);
 
- $vn = "Call";
+  # input text
+  #my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
+  #my(@lpl) = qw/-side left/;
+
+  foreach $vn ( "Serial", "Precedence"){
+    my $if = $right_frame->Frame->pack(qw/-anchor w/);
+    $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+    $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  }
+
+  $vn = "Call";
   my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-validate        => 'key',
@@ -661,69 +792,151 @@ sub make_window {
   $Inputs{$vn} = $if->Entry(-takefocus => 0, -textvariable => \$Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
   $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
- $right_frame->Label(-takefocus => 0, -textvariable => \$Message,
-            -borderwidth => 2,
-	    -relief => 'groove')->pack(-fill => 'x',
-	                                 -anchor => 'w');
- $right_frame->Label(-takefocus => 0, -textvariable => \$Info,
+  $right_frame->Label(-takefocus => 0, -textvariable => \$Message,
             -borderwidth => 2,
 	    -relief => 'groove')->pack(-fill => 'x',
 	                                 -anchor => 'w');
 
- my $bf = $right_frame->Frame->pack(qw/-anchor w/);
+  my $if = $right_frame->Frame->pack(-anchor => 'w');
 
- $doneButtonTxt = "Done";
- $bf->Button( -takefocus => 0, -textvariable => \$doneButtonTxt,
-              -command => \&process_qso,
+  $if->Label(-takefocus => 0,
+                      -textvariable => \$Info,
+                      -width => 50,
+                      -borderwidth => 2,
+	                     -relief => 'groove')->pack(-side => 'left');
+
+  $if->Label(-takefocus => 0,
+                      -textvariable => \$Score,
+                      -width => 50,
+                      -borderwidth => 2,
+                      -relief => 'groove')->pack(-side => 'left');
+
+  my $bf = $right_frame->Frame->pack(qw/-anchor w/);
+
+  $bf->Button( -takefocus => 0, -text => "Done <enter>",
+              -command => \&process_qso_entry,
               )->pack(qw/-side left -pady 2/);
 
- $bf->Button( -takefocus => 0, -text => "dupe <ctrl-d>",
-               -command => \&dupe_qso,
-              )->pack(qw/-side left -pady 2/);
-
- $bf->Button( -takefocus => 0, -text => "reset <crtl-c>",
+  $bf->Button( -takefocus => 0, -text => "reset <crtl-c>",
                -command => \&reset_qso,
               )->pack(qw/-side left -pady 2/);
 
- $bf->Button( -takefocus => 0, -text => "delete",
-               -command => \&delete_qso,
-              )->pack(qw/-side left -pady 2/);
-
- $bf->Button( -takefocus => 0, -text => "quit <ctrl-q>",
+  $bf->Button( -takefocus => 0, -text => "quit <ctrl-q>",
               -command => sub { exit },
  	      )->pack(qw/-side left -pady 2/);
 
- $bf->Button( -takefocus => 0, -text => "sect toggle",
+  $bf->Button( -takefocus => 0, -text => "sect toggle",
               -command => \&toggle_sections,
  	      )->pack(qw/-side left -pady 2/);
 
- $lst = $left_frame->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
- $lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
- $lst->pack(qw/-fill both/);
- $lst->bind('<Double-Button-1>',\&recall_qso);
+  $lst = $left_frame->Scrolled(qw/Listbox -takefocus 0 -selectmode single -width 30 -height 18 -scrollbars e/);
+  $lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
+  $lst->pack(qw/-fill both/);
+  $lst->bind('<Double-Button-1>',\&recall_qso);
 
- for my $sl ( 1 .. $SECT_LIST_CNT ) {
-	 $SectList{$sl} = $bottom_frame->Listbox(-takefocus => 0,
+  for my $sl ( 1 .. $SECT_LIST_CNT ) {
+	  $SectList{$sl} = $bottom_frame->Listbox(-takefocus => 0,
 	 																				-selectmode => single,
 																					-width => 26, -height => 21
 																					)->pack(qw/-side left -fill both/);
-	 $SectList{$sl}->bind('<Double-Button-1>',
+	  $SectList{$sl}->bind('<Double-Button-1>',
 	    sub {
 	  		my ($sect,$rest) = split / /,$SectList{$sl}->get($SectList{$sl}->curselection()),2;
 	 			$Section = $sect;
 	 		}
-	 );
- };
+    );
+  };
 
- loadlog();
+##########
+##########
 
- load_sections();
+  my $edit_page = $notebook->add('edit_page', -label => 'Edit');
+  my $edit_left_frame = $edit_page->Frame;
+  $edit_left_frame->pack(qw/-side left -fill y/);
+  my $edit_adjuster = $edit_page->Adjuster(-widget => $edit_left_frame, -side => 'left');
+  $edit_adjuster->pack(qw/-side left -fill y/);
+  my $edit_right_frame = $edit_page->Frame;
+  $edit_right_frame->pack(qw/-side right -fill both -expand l/);
 
- load_list();
+  $edit_lst = $edit_left_frame->Scrolled("Listbox",
+ 																				-takefocus => 0,
+																				-selectmode => "single",
+																				-width => 30,
+																				-height => $geom_y,
+																				-scrollbars => "e")->pack(qw/-fill both/);
+  $edit_lst->Subwidget("yscrollbar")->configure(-takefocus => 0);
+  $edit_lst->bind('<Double-Button-1>',\&recall_qso);
 
- info($totqso);
+  $vn = "Serial";
+  my $if = $edit_right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Edit_Inputs{$vn} = $if->Entry(-textvariable => \$Edit_Serial)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
- $Inputs{Serial}->focus();
+  $vn = "Precedence";
+  my $if = $edit_right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Edit_Inputs{$vn} = $if->Entry(-textvariable => \$Edit_Precedence)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
+  $vn = "Call";
+  my $if = $edit_right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Edit_Inputs{$vn} = $if->Entry(
+ 				 -textvariable => \$Edit_Call)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
+  $vn = "Check";
+  my $if = $edit_right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Edit_Inputs{$vn} = $if->Entry(-textvariable => \$Edit_Check)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
+  $vn = "Section";
+  my $if = $edit_right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Edit_Inputs{$vn} = $if->Entry(-validate        => 'key',
+ 				 -validatecommand => [\&inline_validate_section],
+ 				 -textvariable => \$Edit_Section)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Edit_Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
+
+  $vn = "Edit Freq";
+  my $if = $edit_right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Edit_Inputs{$vn} = $if->Entry(-textvariable => \$Edit_Freq)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
+  $edit_right_frame->Label(-takefocus => 0, -textvariable => \$Edit_Message,
+                      -borderwidth => 2,
+            	        -relief => 'groove')->pack(-fill => 'x',
+            	        -anchor => 'w');
+  $edit_right_frame->Label(-takefocus => 0, -textvariable => \$Score,
+                      -borderwidth => 2,
+                	    -relief => 'groove')->pack(-fill => 'x',
+                      -anchor => 'w');
+
+  $edit_right_frame->Button( -takefocus => 0, -text => "Done <enter>",
+              -command => \&process_qso_edit,
+              )->pack(qw/-side left -pady 2 -anchor n/);
+  $edit_right_frame->Button( -takefocus => 0, -text => "delete",
+              -command => \&delete_qso,
+              )->pack(qw/-side left -pady 2 -anchor n/);
+  $edit_right_frame->Button( -takefocus => 0, -text => "Cancel <ctrl-c>",
+               -command => \&reset_qso,
+              )->pack(qw/-side left -pady 2 -anchor n/);
+
+
+
+
+ ##########
+ ##########
+
+  loadlog();
+
+  load_sections();
+
+  load_list();
+
+  info($totqso);
+
+  $Inputs{Serial}->focus();
+
+  $cab_page = $notebook->add('cab_page', -label => 'Cabrillo');
 
   if ( $civ_enable ) {
 		$Telltale{Freq}->configure(-text => "civ enabled");
@@ -732,13 +945,31 @@ sub make_window {
 		$Inputs{"Freq"}->repeat(5000,\&update_freq);
 	}
 
- $main->bind("<Control-d>",[\&dupe_qso]);
- $main->bind("<Control-c>",[\&reset_qso]);
- $main->bind("<Return>",[\&process_qso]);
- $main->bind("<Control-q>",[sub { exit}]);
- $main->bind("<Control-t>",[\&toggle_sections]);
+  $main_window->bind("<Control-d>",[\&dupe_qso]);
+  $main_window->bind("<Control-c>",[\&reset_qso]);
+  $main_window->bind("<Return>",
+    sub {
+      my $focused = $notebook->raised();
+      if ($focused eq "entry_page"){
+        process_qso_entry();
+      } elsif ( $focused eq "edit_page"){
+        process_qso_edit();
+      }
+    });
+  $main_window->bind("<Control-q>",[sub { exit}]);
+  $main_window->bind("<Control-t>",[\&toggle_sections]);
+  $main_window->bind("<Shift-Right>",
+    sub {
+      print "page right\n";
+      $notebook->raise($notebook->info("focusnext"));
+    });
+  $main_window->bind("<Shift-Left>",
+    sub {
+      print "page left\n";
+      $notebook->raise($notebook->info("focusprev"));
+    });
 
- MainLoop();
+  MainLoop();
 
 }
 
