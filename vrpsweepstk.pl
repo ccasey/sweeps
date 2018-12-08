@@ -5,6 +5,10 @@
 # - scoring
 # - cabrillo v2 output
 
+#use strict;
+#use warnings;
+
+use Template;
 use lib '.';
 use ICOM_CIV;
 my $socket = icom_civ_setup("/dev/cuau0");
@@ -21,6 +25,7 @@ use Tk::Menubutton;
 use Tk::Adjuster;
 use Tk::DialogBox;
 use Tk::NoteBook;
+use Tk::Pane;
 
 use POSIX qw(ceil);
 
@@ -244,11 +249,29 @@ sub section_stats {
 ##########
 
 sub cabrillo {
+
+  my $tt = Template->new;
+
+  my $rendered_cap;
+
+  my %tpl_data = (
+    mycall => $mycall,
+    mysection => $mysection,
+    myprec => $myprec,
+    #myclub => "woohaa",
+
+  );
+
+  $tt->process('templates/sweeps_phone.tpl', \%tpl_data, \$rendered_cab)
+    || die $tt->error;
+
   foreach (keys %qsos){
     $bar[$qsos{$_}{sserial}] = "$_";
   }
-  open(CAB, ">$CABFILE")
-    or die "no cabfile workie: $!";
+
+  $cab_lst->delete('1.0',"end");
+
+  $cab_lst->insert('end', $rendered_cab);
 
   foreach $call (@bar){
     unless($call){next;}
@@ -256,11 +279,25 @@ sub cabrillo {
     my $cd = ($ta[5] + 1900) . "-" . ($ta[4]+1) . "-$ta[3]";
     my $ct = "$ta[2]$ta[1]";
 
-    printf CAB ("QSO: %5s PH %10s %02s%02s %-10s %4s %s %s %3s %-10s %4s %s %s %s\n",
-    $qsos{$call}{freq},$cd,$ta[2],$ta[1],"N0VRP",$qsos{$call}{sserial},"A","93","KS ",uc($call),$qsos{$call}{rserial},uc($qsos{$call}{precedence}),$qsos{$call}{check},uc($qsos{$call}{section}));
-  }
+    my $cab_line = sprintf("QSO: %5s PH %10s %02s%02s %-10s %4s %s %s %3s %-10s %4s %s %s %s\n",
+    $qsos{$call}{freq},
+    $cd,
+    $ta[2],
+    $ta[1],
+    $mycall,
+    $qsos{$call}{sserial},
+    $myprec,
+    $mycheck,
+    $mysection,
+    uc($call),
+    $qsos{$call}{rserial},
+    uc($qsos{$call}{precedence}),
+    $qsos{$call}{check},
+    uc($qsos{$call}{section}),
+    );
 
-  close(CAB);
+    $cab_lst->insert('end', $cab_line);
+  }
 
 }
 ##########
@@ -918,8 +955,26 @@ sub make_window {
 
 
 
- ##########
- ##########
+##########
+##########
+
+  $cab_page = $notebook->add('cab_page',
+                             -label => 'Cabrillo',
+                             -raisecmd => sub {cabrillo()} );
+
+  my $cab_frame = $cab_page->Frame->pack(-side => "left", -fill => "both");
+  $cab_lst = $cab_frame->Scrolled("Text",
+                                      -takefocus => 0,
+                                      -width => $geom_x,
+                                      -scrollbars => "se")->pack(-expand => 1,
+                                                                -fill => "both",
+                                                                );
+
+
+
+
+##########
+##########
 
   loadlog();
 
@@ -930,8 +985,6 @@ sub make_window {
   info($totqso);
 
   $Inputs{Serial}->focus();
-
-  $cab_page = $notebook->add('cab_page', -label => 'Cabrillo');
 
   if ( $civ_enable ) {
 		$Telltale{Freq}->configure(-text => "civ enabled");
