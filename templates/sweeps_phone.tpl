@@ -1,8 +1,8 @@
 START-OF-LOG: 3.0
 CONTEST: ARRL-SS-SSB
-CALLSIGN: [% mycall %]
-LOCATION: [% mysection %]
-[% SWITCH myprec -%]
+CALLSIGN: [% call %]
+LOCATION: [% section %]
+[% SWITCH precedence.upper -%]
 [%  CASE "A" -%]
 CATEGORY-OPERATOR: SINGLE-OP
 CATEGORY-TRANSMITTER: ONE
@@ -44,11 +44,11 @@ CATEGORY-POWER: HIGH
 CATEGORY-MODE: SSB
 CATEGORY-STATION: FIXED
 [% END -%]
-CLUB: [% myclub %]
+CLUB: [% club %]
 CLAIMED-SCORE: 13224
 CONTEST: ARRL-SS-SSB
 CREATED-BY: vrpsweeps.pl
-NAME: [% myname %]
-ADDRESS: [% myaddress1 %]
-ADDRESS: [% myaddress2 %]
-OPERATORS: [% myoperators %]
+NAME: [% name %]
+ADDRESS: [% address1 %]
+ADDRESS: [% address2 %]
+OPERATORS: [% operators %]

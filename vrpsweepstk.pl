@@ -27,6 +27,8 @@ use Tk::DialogBox;
 use Tk::NoteBook;
 use Tk::Pane;
 
+use JSON::PP;
+
 use POSIX qw(ceil);
 
 use Getopt::Long qw(GetOptions);
@@ -52,15 +54,38 @@ $SECT_LIST_CNT = 4; # how many columns of sections to display
 $geom_x ="760";
 $geom_y ="640";
 
-$mycall = "N0VRP";
-$myprec = "M";
-$mysection = "NTX";
-$mycheck = 93;
+# who what where
+my $test_year = 1900 + (localtime)[5];
+my $op_json = do {
+  open(my $info_fh, "<encoding(UTF-8)", "tests/$test_year/$test_year.config")
+    or die("Cant open info file: $!\n");
+  local $/;
+  <$info_fh>
+};
 
+print "$op_json\n";
+
+#my $json = JSON::PP->new->ascii->pretty->allow_nonref;
+#my $op_info = $json->decode($op_json);
+my $op_info = decode_json $op_json;
+
+use Data::Dumper;
+print Dumper($op_info);
+print "$op_info\n";
+print "op_info_call: $op_info->{call}\n";
+
+# swap hardcode with op_info vals for now, evetually swap out for op_info globally
+$op_info->{call} = uc($op_info->{call});
+$op_info->{precedence} = uc($op_info->{precedence});
+$op_info->{section} = uc($op_info->{section});
+$op_info->{check} = $op_info->{check};
+
+
+#
 $last_freq = 0;
 $totqso = 0;
-$LOGFILE = "sweeps.dat";
-$CABFILE = "sweeps.cab";
+$LOGFILE = "tests/$test_year/$test_year.dat";
+$CABFILE = "tests/$test_year/$test_year.cab";
 $last_checked;
 $last_qso;
 
@@ -72,12 +97,12 @@ my %Telltale;
 my %Inputs;
 
 my %precedences = (
-  Q => "Single Op QRP",
   A => "Single Op Low Power",
   B => "Single Op High Power",
-  U => "Single Op Unlimited",
   M => "Multi-Op",
-  S => " School Club",
+  Q => "Single Op QRP",
+  S => "School Club",
+  U => "Single Op Unlimited",
 );
 
 my %mults = (
@@ -252,24 +277,24 @@ sub cabrillo {
 
   my $tt = Template->new;
 
-  my $rendered_cap;
+  my $rendered_cab = "";
 
   my %tpl_data = (
-    mycall => $mycall,
-    mysection => $mysection,
-    myprec => $myprec,
+    op_info->{call} => $op_info->{call},
+    op_info->{section} => $op_info->{section},
+    op_info->{precedence} => $op_info->{precedence},
     #myclub => "woohaa",
 
   );
 
-  $tt->process('templates/sweeps_phone.tpl', \%tpl_data, \$rendered_cab)
+  $tt->process('templates/sweeps_phone.tpl', $op_info, \$rendered_cab)
     || die $tt->error;
 
   foreach (keys %qsos){
     $bar[$qsos{$_}{sserial}] = "$_";
   }
 
-  $cab_lst->delete('1.0',"end");
+  $cab_lst->delete('0.0',"end");
 
   $cab_lst->insert('end', $rendered_cab);
 
@@ -284,11 +309,11 @@ sub cabrillo {
     $cd,
     $ta[2],
     $ta[1],
-    $mycall,
+    $op_info->{call},
     $qsos{$call}{sserial},
-    $myprec,
-    $mycheck,
-    $mysection,
+    $op_info->{precedence},
+    $op_info->{check},
+    $op_info->{section},
     uc($call),
     $qsos{$call}{rserial},
     uc($qsos{$call}{precedence}),
@@ -563,9 +588,19 @@ sub sort_by_timestamp{
 ##########
 sub info {
 
-  my $serial = 1 + shift(@_);
+  my $serial = do {
+    local $max_serial = 0;
+    foreach $k (keys %qsos){
+      print $k;
+      if ($qsos{$k}{sserial} > $max_serial) {
+        $max_serial = $qsos{$k}{sserial};
 
-  $Info = "$serial  $myprec  $mycall  $mycheck  $mysection";
+      }
+    }
+    $max_serial+1;
+  };
+
+  $Info = "$serial  $op_info->{precedence}  $op_info->{call}  $op_info->{check}  $op_info->{section}";
 
   $Score = "score: " . score() . " sects: " . section_stats();
 
@@ -687,7 +722,7 @@ sub delete_qso {
     delete($qsos{$Edit_Call});
     $totqso = keys %qsos;
     reset_qso();
-    info($totqso);
+    info();
     load_list();
     load_sections();
     reset_qso();
@@ -982,7 +1017,7 @@ sub make_window {
 
   load_list();
 
-  info($totqso);
+  info();
 
   $Inputs{Serial}->focus();
 
