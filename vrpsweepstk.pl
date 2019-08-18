@@ -26,8 +26,14 @@ use Tk::Adjuster;
 use Tk::DialogBox;
 use Tk::NoteBook;
 use Tk::Pane;
+use Tk::Optionmenu;
+use Tk::BrowseEntry;
+
+
+use Data::Dumper;
 
 use JSON::PP;
+$json = JSON::PP->new->canonical->indent;
 
 use POSIX qw(ceil);
 
@@ -69,10 +75,9 @@ print "$op_json\n";
 #my $op_info = $json->decode($op_json);
 my $op_info = decode_json $op_json;
 
-use Data::Dumper;
-print Dumper($op_info);
-print "$op_info\n";
-print "op_info_call: $op_info->{call}\n";
+#print Dumper($op_info);
+#print "$op_info\n";
+#print "op_info_call: $op_info->{call}\n";
 
 # swap hardcode with op_info vals for now, evetually swap out for op_info globally
 $op_info->{call} = uc($op_info->{call});
@@ -82,9 +87,10 @@ $op_info->{check} = $op_info->{check};
 
 
 #
+$next_serial = 1;
 $last_freq = 0;
-$totqso = 0;
 $LOGFILE = "tests/$test_year/$test_year.dat";
+$JSONLOG = "tests/$test_year/$test_year.dat.json";
 $CABFILE = "tests/$test_year/$test_year.cab";
 $last_checked;
 $last_qso;
@@ -104,6 +110,15 @@ my %precedences = (
   S => "School Club",
   U => "Single Op Unlimited",
 );
+
+#my $precedences = [
+#  ["A Single Op Low Power" => "A"],
+#  ["B Single Op High Power" => "B"],
+#  ["M Multi-Op" => "M"],
+#  ["Q Single Op QRP" => "Q"],
+#  ["S School Club" => "S"],
+#  ["U Single Op Unlimited" => "U"],
+#];
 
 my %mults = (
 CT => { worked => 0, longname => "Connecticut",},
@@ -191,6 +206,8 @@ BC => { worked => 0, longname => "British Columbia",},
 NT => { worked => 0, longname => "Northern Territories",},
 );
 
+#print Dumper(%mults);
+
 ##########
 
 sub logit {
@@ -198,11 +215,26 @@ sub logit {
 	my $logln = shift(@_);
 
 	open(FH,">>$LOGFILE")
- 	or die "cant open $LOGFILE: $!\n";
+ 	  or die "cant open $LOGFILE: $!\n";
 
-	print FH $logln;
+  print FH $logln;
 
-	close(FH);
+  close(FH);
+}
+
+sub json_logit {
+
+  local $call_ = shift(@_);
+	#local $json_log = $json->encode($qsos{$call_});
+	local $json_log = $json->encode(\%qsos);
+  #print "$json_log\n";
+  #print Dumper($json_log);
+
+  #open(FH,">>$JSONLOG")
+ 	#  or die "cant open $JSONLOG: $!\n";
+#
+  #print FH $logln;
+  #close(FH);
 
 }
 
@@ -219,18 +251,14 @@ sub loadlog {
    	my @foo = split;
 
    	if($foo[0] =~ /del/){
-    	if($mults{$qsos{$foo[1]}{section}}{worked}){
-     		$mults{$qsos{$foo[1]}{section}}{worked}--;
-    	}
 			delete($qsos{$foo[1]});
    	}else{
-    	$qsos{$foo[4]} = { sserial => $foo[1], rserial => $foo[2], precedence => $foo[3], check => $foo[5],
+    	$qsos{$foo[4]} = { action => "add", sserial => $foo[1], rserial => $foo[2], precedence => $foo[3], check => $foo[5],
                       	section => $foo[6], qsotime => $foo[7], freq => $foo[8]};
-    	$mults{$foo[6]}{worked}++;
+      json_logit($foo[4]);
     	$last_qso = $foo[4];
     	$Freq = $foo[8];
    	}
-    $totqso = keys %qsos;
   }
 
   close(LL);
@@ -249,7 +277,9 @@ sub score {
   	}
   }
 
- return ($m * ($totqso*2));
+  local $totqso = keys %qsos;
+
+  return ($m * ($totqso*2));
 
 }
 
@@ -283,7 +313,6 @@ sub cabrillo {
     op_info->{call} => $op_info->{call},
     op_info->{section} => $op_info->{section},
     op_info->{precedence} => $op_info->{precedence},
-    #myclub => "woohaa",
 
   );
 
@@ -327,6 +356,8 @@ sub cabrillo {
 }
 ##########
 
+# to help dry some things up, return a ref to the current version of the entry
+# widgets
 sub get_entry_refs {
 
   my %entry_ref_hash;
@@ -358,13 +389,22 @@ sub get_entry_refs {
 
 }
 
+
 ##########
+
+# this and process_qso_edit could be dry'd out, but they become pretty messy
+# with passing refs or conditionaling everything
 
 sub process_qso_entry {
 
   #print "process_qso $Serial $Precedence $Call $Check $Section\n" if $DEBUG;
   my $qsotime = time();
+
   undef($message);
+
+  $Section = uc($Section);
+  $Call = uc($Call);
+  $Precedence = uc($Precedence);
 
   if(dupe_qso()){
       reset_qso();
@@ -379,7 +419,7 @@ sub process_qso_entry {
   }
 
   unless(defined($Precedence) && exists($precedences{$Precedence})){
-    $Message = $Message . "Bad Precedence... ";
+    $Message = $Message . "Bad Precedence... $Precedence ";
   }
 
   unless(defined($Call)){
@@ -406,30 +446,26 @@ sub process_qso_entry {
     return;
   }
 
-  $Section = uc($Section);
-  $Call = uc($Call);
-  $Precedence = uc($Precedence);
-
-  logit("add $totqso $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
-
-  $qsos{$Call} = { sserial => $totqso,
+  $qsos{$Call} = { sserial => $next_serial,
                    rserial => $Serial,
 		               precedence => $Precedence,
 		               check => $Check,
 		               section => $Section,
 		               freq => $Freq,
 		               qsotime => $qsotime,
+                   action => "add",
                  };
 
-	 $mults{$Section}{worked}++;
+  logit("add $next_serial $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
+  json_logit($Call);
 
   load_list();
   load_sections();
 
   reset_qso();
-  info	($totqso);
+  info();
   $Inputs{Call}->focus();
-
+  #print Dumper(%mults);
 }
 
 ##########
@@ -439,6 +475,10 @@ sub process_qso_edit {
   #print "process_qso $Edit_Serial $Edit_Precedence $Edit_Call $Edit_Check $Edit_Section\n" if $DEBUG;
 
   undef($Edit_Message);
+
+  $Edit_Section = uc($Edit_Section);
+  $Edit_Call = uc($Edit_Call);
+  $Edit_Precedence = uc($Edit_Precedence);
 
   unless(defined($Edit_Serial) && $Edit_Serial =~ /^\d+$/ ){
     $Edit_Message = $Edit_Message . "Bad Serial... ";
@@ -472,14 +512,10 @@ sub process_qso_edit {
     return;
   }
 
-  if($update_call ne $Edit_Call){
+  #if($update_call ne $Edit_Call){
     delete($qsos{$update_call});
     logit("del $update_call\n");
-  }
-
-  $Edit_Section = uc($Edit_Section);
-  $Edit_Call = uc($Edit_Call);
-  $Edit_Precedence = uc($Edit_Precedence);
+  #}
 
   logit("add $update_given_serial $Edit_Serial $Edit_Precedence $Edit_Call $Edit_Check $Edit_Section $update_qsotime $Edit_Freq\n");
 
@@ -488,12 +524,6 @@ sub process_qso_edit {
   $qsos{$Edit_Call}{precedence} = $Edit_Precedence;
   $qsos{$Edit_Call}{check} = $Edit_Check;
   $qsos{$Edit_Call}{qsotime} = $update_qsotime;
-
-  # if we change the section, adjust accordingly
-  if($Edit_Section ne $qsos{$Edit_Call}{section}){
-    $mults{$Edit_Section}{worked}++;
-    $mults{$qsos{$Edit_Call}{section}}{worked}--;
-  }
 
   $qsos{$Edit_Call}{section} = $Edit_Section;
   $qsos{$Edit_Call}{freq} = $Edit_Freq;
@@ -506,7 +536,7 @@ sub process_qso_edit {
   load_sections();
 
   reset_qso();
-  info	($totqso);
+  info();
   $Inputs{Call}->focus();
 
 }
@@ -568,17 +598,96 @@ sub inline_validate_section {
     $telltale_ref = \$Edit_Telltale{Section};
   }
 
-	if(defined($mults{$entry}) || !$entry){
+	if(exists($mults{$entry}) || !$entry){
 	  $$inputs_ref->configure(-background => lightgrey);
 		$$telltale_ref->configure(-text => "$mults{$entry}{longname}");
 		return 1;
 	} else {
 		$$inputs_ref->configure(-background => red);
-		$$telltale_ref->configure(-text => "");
+		$$telltale_ref->configure(-text => "Invalid Section");
 		return 1;
 	}
 }
 
+##########
+sub inline_validate_check {
+  local $entry = (shift);
+
+  my $inputs_ref;
+  my $telltale_ref;
+
+  if($notebook->raised() eq "entry_page"){
+    $inputs_ref = \$Inputs{Check};
+    $telltale_ref = \$Telltale{Check};
+  } elsif ($notebook->raised() eq "edit_page"){
+    $inputs_ref = \$Edit_Inputs{Check};
+    $telltale_ref = \$Edit_Telltale{Check};
+  }
+
+  if ($entry =~ /^\d+$/ || !$entry) {
+    $$inputs_ref->configure(-background => lightgrey);
+		$$telltale_ref->configure(-text => "");
+		return 1;
+  } else {
+    $$inputs_ref->configure(-background => red);
+		$$telltale_ref->configure(-text => "Invalid Check");
+		return 1;
+  }
+}
+
+##########
+
+sub inline_validate_serial {
+  local $entry = (shift);
+
+  my $inputs_ref;
+  my $telltale_ref;
+
+  if($notebook->raised() eq "entry_page"){
+    $inputs_ref = \$Inputs{Serial};
+    $telltale_ref = \$Telltale{Serial};
+  } elsif ($notebook->raised() eq "edit_page"){
+    $inputs_ref = \$Edit_Inputs{Serial};
+    $telltale_ref = \$Edit_Telltale{Serial};
+  }
+
+  if ($entry =~ /^\d+$/ || !$entry) {
+    $$inputs_ref->configure(-background => lightgrey);
+		$$telltale_ref->configure(-text => "");
+		return 1;
+  } else {
+    $$inputs_ref->configure(-background => red);
+		$$telltale_ref->configure(-text => "Invalid Serial");
+		return 1;
+  }
+}
+
+##########
+
+sub inline_validate_precedence {
+  local $entry = uc(shift);
+
+  my $inputs_ref;
+  my $telltale_ref;
+
+  if($notebook->raised() eq "entry_page"){
+    $inputs_ref = \$Inputs{Precedence};
+    $telltale_ref = \$Telltale{Precedence};
+  } elsif ($notebook->raised() eq "edit_page"){
+    $inputs_ref = \$Edit_Inputs{Precedence};
+    $telltale_ref = \$Edit_Telltale{Precedence};
+  }
+
+  if(defined($precedences{$entry}) || !$entry){
+    $$inputs_ref->configure(-background => lightgrey);
+		$$telltale_ref->configure(-text => "$precedences{$entry}");
+		return 1;
+	} else {
+		$$inputs_ref->configure(-background => red);
+		$$telltale_ref->configure(-text => "");
+		return 1;
+  }
+}
 ##########
 
 sub sort_by_timestamp{
@@ -588,10 +697,9 @@ sub sort_by_timestamp{
 ##########
 sub info {
 
-  my $serial = do {
+  $next_serial = do {
     local $max_serial = 0;
     foreach $k (keys %qsos){
-      print $k;
       if ($qsos{$k}{sserial} > $max_serial) {
         $max_serial = $qsos{$k}{sserial};
 
@@ -600,7 +708,7 @@ sub info {
     $max_serial+1;
   };
 
-  $Info = "$serial  $op_info->{precedence}  $op_info->{call}  $op_info->{check}  $op_info->{section}";
+  $Info = "Next exchange:    $next_serial  $op_info->{precedence}  $op_info->{call}  $op_info->{check}  $op_info->{section}";
 
   $Score = "score: " . score() . " sects: " . section_stats();
 
@@ -682,10 +790,27 @@ sub load_sections {
   my $cnt = 0;
   my $cur_list = 1;
 
+  # clear qso counts
+  foreach $m (sort keys %mults){
+    $mults{$m}{worked} = 0;
+    #print "$m \n";
+  }
+
+  # repopulate multiplier count
+  foreach $q (keys %qsos){
+    $mults{$qsos{$q}{section}}{worked}++;
+    #print $mults{$qsos{$q}{section}}{worked };
+  }
+
   clear_sections();
 
   foreach $mult (sort keys %mults ){
 
+    unless($mult){
+      next;
+    }
+
+    #print "$mult $mults{$mult}{worked} \n";
 	  # if true, only show needed sections
     if($sectMode){
 		  if($mults{$mult}{worked}){
@@ -718,9 +843,7 @@ sub delete_qso {
 
   if(defined($Edit_Call)){
     logit("del $Edit_Call\n");
-    $mults{$qsos{$Edit_Call}{section}}{worked}--;
     delete($qsos{$Edit_Call});
-    $totqso = keys %qsos;
     reset_qso();
     info();
     load_list();
@@ -824,11 +947,41 @@ sub make_window {
   #my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
   #my(@lpl) = qw/-side left/;
 
-  foreach $vn ( "Serial", "Precedence"){
-    my $if = $right_frame->Frame->pack(qw/-anchor w/);
-    $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
-    $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
-  }
+  $vn = "Serial";
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Inputs{$vn} = $if->Entry(-validate => 'key',
+    -validatecommand => [\&inline_validate_serial],
+    -textvariable => \$Serial)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
+
+  # $vn = "Precedence";
+  # my $if = $right_frame->Frame->pack(qw/-anchor w/);
+  # $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  # $Inputs{$vn} = $if->Optionmenu(
+  # #  -options => [[A => "Single Op Low Power"],[jan=>1], [feb=>2], [mar=>3], [apr=>4]],
+  #   -options => $precedences,
+  #   -variable => \$Precedence
+  #   )->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
+  $vn = "Precedence";
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(
+    -text => $vn,
+    -width => 15
+  )->pack(qw/-side left/);
+  $Inputs{$vn} = $if->Entry(-validate => 'key',
+    -width => 1,
+    -validatecommand => [\&inline_validate_precedence],
+    -textvariable => \$Precedence)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Help{$vn} = $if->Label(
+    -text => join(" ", map{ "$_" } keys %precedences),
+    -width => 10
+  )->pack(qw/-side left/);
+  $Telltale{$vn} = $if->Label(
+    -text => "",
+    -width => 25
+  )->pack(qw/-side left/);
 
   $vn = "Call";
   my $if = $right_frame->Frame->pack(qw/-anchor w/);
@@ -840,7 +993,10 @@ sub make_window {
   $vn = "Check";
   my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
-  $Inputs{$vn} = $if->Entry(-textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Inputs{$vn} = $if->Entry(-validate => 'key',
+    -validatecommand => [\&inline_validate_check],
+    -textvariable => \$Check)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+  $Telltale{$vn} = $if->Label(-text => "", -width => 25)->pack(qw/-side left/);
 
  	$vn = "Section";
   my $if = $right_frame->Frame->pack(qw/-anchor w/);
@@ -1030,6 +1186,7 @@ sub make_window {
 
   $main_window->bind("<Control-d>",[\&dupe_qso]);
   $main_window->bind("<Control-c>",[\&reset_qso]);
+  $main_window->bind("<Control-l>",[\&load_sections]);
   $main_window->bind("<Return>",
     sub {
       my $focused = $notebook->raised();
