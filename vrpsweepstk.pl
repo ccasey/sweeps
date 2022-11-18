@@ -49,6 +49,8 @@ use Term::ReadLine;
 $term = new Term::ReadLine 'vrpsweeps';
 
 %qsos = ();
+%history = ();
+$history_used = 0;
 
 $DEBUG = 1;
 
@@ -62,14 +64,15 @@ $geom_y ="640";
 
 # who what where
 my $test_year = 1900 + (localtime)[5];
+$infofile = "tests/$test_year.config";
 my $op_json = do {
-  open(my $info_fh, "<encoding(UTF-8)", "tests/$test_year/$test_year.config")
+  open(my $info_fh, "<encoding(UTF-8)", "tests/$test_year.config")
     or die("Cant open info file: $!\n");
   local $/;
   <$info_fh>
 };
 
-print "$op_json\n";
+#print "$op_json\n";
 
 #my $json = JSON::PP->new->ascii->pretty->allow_nonref;
 #my $op_info = $json->decode($op_json);
@@ -89,9 +92,10 @@ $op_info->{check} = $op_info->{check};
 #
 $next_serial = 1;
 $last_freq = 0;
-$LOGFILE = "tests/$test_year/$test_year.dat";
-$JSONLOG = "tests/$test_year/$test_year.dat.json";
-$CABFILE = "tests/$test_year/$test_year.cab";
+$LOGFILE = "tests/$test_year.dat";
+$JSONLOG = "tests/$test_year.dat.json";
+$CABFILE = "tests/$test_year.cab";
+$HISTORYFILE = "tests/$test_year.call-history";
 $last_checked;
 $last_qso;
 
@@ -265,6 +269,27 @@ sub loadlog {
 
 }
 
+sub loadhistory {
+
+  if( -e $HISTORYFILE ){
+  	open(LH,"<$HISTORYFILE")
+   	or die "cant open $HISTORYFILE: $!\n";
+ 	}
+  while(<LH>){
+   	chomp;
+
+   	my @foo = split(',');
+
+   	if($foo[0] =~ /^#/){
+			next;
+   	}else{
+    	$history{$foo[0]} = { section => $foo[1], state => $foo[2], check => $foo[3] };
+   	}
+  }
+  $hsize =  keys %history;
+  #print("loaded $hsize keys from $HISTORYFILE\n")
+  #print("n0vrp: $history{'N0VRP'}{'section'}\n");
+}
 ##########
 
 sub score {
@@ -397,13 +422,12 @@ sub get_entry_refs {
 
 sub process_qso_entry {
 
-  #print "process_qso $Serial $Precedence $Call $Check $Section\n" if $DEBUG;
+  #print("process_qso $Serial $Precedence $Call $Check $Section\n");
   my $qsotime = time();
 
   undef($message);
 
   $Section = uc($Section);
-  $Call = uc($Call);
   $Precedence = uc($Precedence);
 
   if(dupe_qso()){
@@ -458,7 +482,6 @@ sub process_qso_entry {
 
   logit("add $next_serial $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
   json_logit($Call);
-
   load_list();
   load_sections();
 
@@ -534,7 +557,6 @@ sub process_qso_edit {
 
   load_list();
   load_sections();
-
   reset_qso();
   info();
   $Inputs{Call}->focus();
@@ -563,7 +585,7 @@ sub dupe_qso {
 
 ##########
 
-sub inline_dupe_qso {
+sub inline_validate_call {
 
   my $entry = uc($_[0]);
 
@@ -574,6 +596,19 @@ sub inline_dupe_qso {
     $Message = "$qsos{$entry}{sserial} : $ta[2]:$ta[1] $qsos{$entry}{rserial} $qsos{$entry}{precedence} $entry $qsos{$entry}{check} $qsos{$entry}{section} $qsos{$entry}{freq}";
     $Inputs{Call}->configure(-background => red);
   }else{
+    if(defined($history{$entry})){
+      print("clearing and setting from history\n");
+      $Inputs{Check}->delete(0,'end');
+      $Inputs{Section}->delete(0,'end');
+      $Inputs{Check}->insert(0, $history{$entry}{'check'});
+      $Inputs{Section}->insert(0, $history{$entry}{'section'});
+      $history_used = 1;
+    }elsif($history_used){
+      print("clearing history\n");
+      $Inputs{Check}->delete(0,'end');
+      $Inputs{Section}->delete(0,'end');
+      $history_used = 0;
+    }
     $Message = "GOOD";
     $Inputs{Call}->configure(-background => lightgrey);
   }
@@ -947,6 +982,13 @@ sub make_window {
   #my(@ipl) = qw/-side left -padx 10 -pady 5 -fill x/;
   #my(@lpl) = qw/-side left/;
 
+  $vn = "Call";
+  my $if = $right_frame->Frame->pack(qw/-anchor w/);
+  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
+  $Inputs{$vn} = $if->Entry(-validate        => 'key',
+          -validatecommand => [\&inline_validate_call],
+          -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
+
   $vn = "Serial";
   my $if = $right_frame->Frame->pack(qw/-anchor w/);
   $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
@@ -983,12 +1025,6 @@ sub make_window {
     -width => 25
   )->pack(qw/-side left/);
 
-  $vn = "Call";
-  my $if = $right_frame->Frame->pack(qw/-anchor w/);
-  $if->Label(-text => $vn, -width => 15)->pack(qw/-side left/);
-  $Inputs{$vn} = $if->Entry(-validate        => 'key',
-			    -validatecommand => [\&inline_dupe_qso],
-			    -textvariable => \$$vn)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
 
   $vn = "Check";
   my $if = $right_frame->Frame->pack(qw/-anchor w/);
@@ -1169,13 +1205,15 @@ sub make_window {
 
   loadlog();
 
+  loadhistory();
+
   load_sections();
 
   load_list();
 
   info();
 
-  $Inputs{Serial}->focus();
+  #$Inputs{Serial}->focus();
 
   if ( $civ_enable ) {
 		$Telltale{Freq}->configure(-text => "civ enabled");
