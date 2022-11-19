@@ -470,17 +470,22 @@ sub process_qso_entry {
     return;
   }
 
-  $qsos{$Call} = { sserial => $next_serial,
+  local $uc_call = uc($Call);
+  local $uc_precedence = uc($Precedence);
+  local $uc_section = uc($Section);
+
+  $qsos{$uc_call} = { sserial => $next_serial,
                    rserial => $Serial,
-		               precedence => $Precedence,
+		               precedence => $uc_precedence,
 		               check => $Check,
-		               section => $Section,
+		               section => $uc_section,
 		               freq => $Freq,
 		               qsotime => $qsotime,
                    action => "add",
                  };
 
-  logit("add $next_serial $Serial $Precedence $Call $Check $Section $qsotime $Freq\n");
+
+  logit("add $next_serial $Serial $uc_precedence $uc_call $Check $uc_section $qsotime $Freq\n");
   json_logit($Call);
   load_list();
   load_sections();
