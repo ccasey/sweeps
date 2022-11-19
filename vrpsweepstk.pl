@@ -1,4 +1,4 @@
-#!/Users/csc/perl5/perlbrew/perls/perl-5.16.0/bin/perl
+#!/usr/bin/env perl
 
 # sweeps logging program
 # - dupes
