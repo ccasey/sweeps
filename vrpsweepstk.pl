@@ -602,14 +602,14 @@ sub inline_validate_call {
     $Inputs{Call}->configure(-background => red);
   }else{
     if(defined($history{$entry})){
-      print("clearing and setting from history\n");
+      #print("clearing and setting from history\n");
       $Inputs{Check}->delete(0,'end');
       $Inputs{Section}->delete(0,'end');
       $Inputs{Check}->insert(0, $history{$entry}{'check'});
       $Inputs{Section}->insert(0, $history{$entry}{'section'});
       $history_used = 1;
     }elsif($history_used){
-      print("clearing history\n");
+      #print("clearing history\n");
       $Inputs{Check}->delete(0,'end');
       $Inputs{Section}->delete(0,'end');
       $history_used = 0;
