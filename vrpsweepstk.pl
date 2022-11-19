@@ -1018,7 +1018,7 @@ sub make_window {
     -width => 15
   )->pack(qw/-side left/);
   $Inputs{$vn} = $if->Entry(-validate => 'key',
-    -width => 1,
+    -width => 2,
     -validatecommand => [\&inline_validate_precedence],
     -textvariable => \$Precedence)->pack(qw/-side left -padx 10 -pady 5 -fill x/);
   $Help{$vn} = $if->Label(
