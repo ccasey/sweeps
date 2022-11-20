@@ -208,6 +208,7 @@ SK => { worked => 0, longname => "Saskatchewan",},
 AB => { worked => 0, longname => "Alberta",},
 BC => { worked => 0, longname => "British Columbia",},
 NT => { worked => 0, longname => "Northern Territories",},
+PE => { worked => 0, longname => "Prince Edward Island"},
 );
 
 #print Dumper(%mults);
