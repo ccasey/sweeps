@@ -1205,7 +1205,31 @@ sub make_window {
 
 
 
+#####
 
+sub unworked_mults(){
+
+  foreach $q (keys %qsos){
+    $mults{$qsos{$q}{section}}{worked}++;
+    #print $mults{$qsos{$q}{section}}{worked };
+  }
+
+  foreach $mult (sort keys %mults ){
+
+    unless($mult){
+      next;
+    }
+
+    #print "$mult $mults{$mult}{worked} \n";
+	  # if true, only show needed sections
+    if($mults{$mult}{worked}){
+		    next;
+	  }else{
+      print("$mult $mults{$mult}{longname}\n");
+    }
+  }
+
+}
 ##########
 ##########
 
@@ -1219,6 +1243,10 @@ sub make_window {
 
   info();
 
+  if ( $ARGV[0] eq 'mults' ){
+    unworked_mults();
+    exit();
+  }
   #$Inputs{Serial}->focus();
 
   if ( $civ_enable ) {
