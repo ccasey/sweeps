@@ -878,7 +878,7 @@ sub load_sections {
 		if($qso_cnt == 1){
 			$SectList{$cur_list}->itemconfigure('end', -background => 'lightgreen');
 		} elsif($qso_cnt > 1){
-      $SectList{$cur_list}->itemconfigure('end', -background => 'darkgreen'); 
+      $SectList{$cur_list}->itemconfigure('end', -background => 'green'); 
     }
 
 	}
