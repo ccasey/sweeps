@@ -846,7 +846,7 @@ sub load_sections {
   # repopulate multiplier count
   foreach $q (keys %qsos){
     $mults{$qsos{$q}{section}}{worked}++;
-    #print $mults{$qsos{$q}{section}}{worked };
+    #print $mults{$qsos{$q}{section}}{worked};
   }
 
   clear_sections();
@@ -875,9 +875,11 @@ sub load_sections {
     my $ln = sprintf("%-4s %s %s", $mult, $mults{$mult}{longname},$qso_cnt);
 
 		$SectList{$cur_list}->insert('end',$ln);
-		if($qso_cnt){
+		if($qso_cnt == 1){
 			$SectList{$cur_list}->itemconfigure('end', -background => 'lightgreen');
-		}
+		} elsif($qso_cnt > 1){
+      $SectList{$cur_list}->itemconfigure('end', -background => 'darkgreen'); 
+    }
 
 	}
 
