@@ -10,8 +10,13 @@
 
 use Template;
 use lib '.';
-use ICOM_CIV;
-my $socket = icom_civ_setup("/dev/cuau0");
+use Hamlib;
+
+Hamlib::rig_set_debug($Hamlib::RIG_DEBUG_ERR);
+$rig = new Hamlib::Rig($Hamlib::RIG_MODEL_K3);
+$rig->set_conf("rig_pathname", "/dev/cuaU0");
+
+$rig->open();
 
 use English;
 require Tk;
@@ -147,13 +152,13 @@ GA => { worked => 0, longname => "Georgia",},
 KY => { worked => 0, longname => "Kentucky",},
 NC => { worked => 0, longname => "North Carolina",},
 NFL => { worked => 0, longname => "Northern Florida",},
+PR => { worked => 0, longname => "Puerto Rico",},
 SC => { worked => 0, longname => "South Carolina",},
 SFL => { worked => 0, longname => "Southern Florida",},
-WCF => { worked => 0, longname => "West Central Florida",},
 TN => { worked => 0, longname => "Tennessee",},
 VA => { worked => 0, longname => "Virginia",},
-PR => { worked => 0, longname => "Puerto Rico",},
 VI => { worked => 0, longname => "Virgin Islands",},
+WCF => { worked => 0, longname => "West Central Florida",},
 AR => { worked => 0, longname => "Arkansas",},
 LA => { worked => 0, longname => "Louisiana",},
 MS => { worked => 0, longname => "Mississippi",},
@@ -165,13 +170,14 @@ WTX => { worked => 0, longname => "West Texas",},
 EB => { worked => 0, longname => "East Bay",},
 LAX => { worked => 0, longname => "Los Angeles",},
 ORG => { worked => 0, longname => "Orange",},
+PAC => { worked => 0, longname => "Pacific",},
 SB => { worked => 0, longname => "Santa Barbara",},
 SCV => { worked => 0, longname => "Santa Clara Valley",},
 SDG => { worked => 0, longname => "San Diego",},
 SF => { worked => 0, longname => "San Francisco",},
 SJV => { worked => 0, longname => "San Joaquin Valley",},
 SV => { worked => 0, longname => "Sacramento Valley",},
-PAC => { worked => 0, longname => "Pacific",},
+AK => { worked => 0, longname => "Alaska",},
 AZ => { worked => 0, longname => "Arizona",},
 EWA => { worked => 0, longname => "Eastern Washington",},
 ID => { worked => 0, longname => "Idaho",},
@@ -181,7 +187,6 @@ OR => { worked => 0, longname => "Oregon",},
 UT => { worked => 0, longname => "Utah",},
 WWA => { worked => 0, longname => "Western Washington",},
 WY => { worked => 0, longname => "Wyoming",},
-AK => { worked => 0, longname => "Alaska",},
 MI => { worked => 0, longname => "Michigan",},
 OH => { worked => 0, longname => "Ohio",},
 WV => { worked => 0, longname => "West Virginia",},
@@ -193,24 +198,25 @@ IA => { worked => 0, longname => "Iowa",},
 KS => { worked => 0, longname => "Kansas",},
 MN => { worked => 0, longname => "Minnesota",},
 MO => { worked => 0, longname => "Missouri",},
-NE => { worked => 0, longname => "Nebraska",},
 ND => { worked => 0, longname => "North Dakota",},
+NE => { worked => 0, longname => "Nebraska",},
 SD => { worked => 0, longname => "South Dakota",},
-MAR => { worked => 0, longname => "Maritime",},
+AB => { worked => 0, longname => "Alberta",},
+BC => { worked => 0, longname => "British Columbia",},
+GH => { worked => 0, logname => "Ontario Golden Horseshoe",},
+MB => { worked => 0, longname => "Manitoba",},
+NB => { worked => 0, logname => "New Brunswick",},
 NL => { worked => 0, longname => "Newfoundland/Labrador",},
-QC => { worked => 0, longname => "Quebec",},
+NS => { worked => 0, logname => "Nova Scotia",},
 ONE => { worked => 0, longname => "Ontario East",},
 ONN => { worked => 0, longname => "Ontario North",},
 ONS => { worked => 0, longname => "Ontario South",},
-GTA => { worked => 0, longname => "Greater Toronto Area",},
-MB => { worked => 0, longname => "Manitoba",},
+PE => { worked => 0, logname => "Prince Edward Island",},
+QC => { worked => 0, longname => "Quebec",},
 SK => { worked => 0, longname => "Saskatchewan",},
-AB => { worked => 0, longname => "Alberta",},
-BC => { worked => 0, longname => "British Columbia",},
-NT => { worked => 0, longname => "Northern Territories",},
-PE => { worked => 0, longname => "Prince Edward Island"},
+TER => { worked => 0, longname => "Territories",},
 );
-
+# => { worked => 0, logname => "",},
 #print Dumper(%mults);
 
 ##########
@@ -463,7 +469,7 @@ sub process_qso_entry {
     }
   }
 
-  unless(defined($Freq) && $Freq =~ /^\d+$/){
+  unless(defined($Freq) && $Freq =~ /^\d/){
     $Message = $Message . "Bad Freq... ";
   }
 
@@ -930,21 +936,19 @@ sub recall_qso {
 ##########
 
 sub get_rig_freq {
-	if ($civ_debug){
-		$rig_freq = "0.014.322.500";
-	} else {
-		$rig_freq = icom_civ_getfreq($socket, 0x66);
-	}
-	my($gig,$mhz,$khz,$hz) = split /\./, $rig_freq;
-	$mhz =~ s/^0+//;
+  	$rig_freq = $rig->get_freq();
+	substr($rig_freq, -3, 0) = '.';
+	substr($rig_freq, -7, 0) = '.';
+
 	unless ($Freq){
 		$Freq = "no rig data yet"
 	}
-	if ($mhz) {
+
+	if ($rig_freq) {
 		if ($Inputs{Freq}){
 			$Inputs{Freq}->configure(-background => lightgrey);
 		}
-		return $mhz;
+		return $rig_freq;
 	} else {
 		if ($Inputs{Freq}){
 			$Inputs{Freq}->configure(-background => yellow);
@@ -1249,12 +1253,9 @@ sub unworked_mults(){
   }
   #$Inputs{Serial}->focus();
 
-  if ( $civ_enable ) {
-		$Telltale{Freq}->configure(-text => "civ enabled");
-		$Telltale{Freq}->update();
-		sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
-		$Inputs{"Freq"}->repeat(5000,\&update_freq);
-	}
+  $Telltale{Freq}->update();
+  sub update_freq {$Freq = get_rig_freq(); $Inputs{"Freq"}->update();}
+  $Inputs{"Freq"}->repeat(500,\&update_freq);
 
   $main_window->bind("<Control-d>",[\&dupe_qso]);
   $main_window->bind("<Control-c>",[\&reset_qso]);
