@@ -539,7 +539,7 @@ sub process_qso_edit {
     }
   }
 
-  unless(defined($Edit_Freq) && $Edit_Freq =~ /^\d+$/){
+  unless(defined($Edit_Freq) && $Edit_Freq =~ /^\d/){
     $Edit_Message = $Edit_Message . "Bad Freq... ";
   }
 
