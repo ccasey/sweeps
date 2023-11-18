@@ -203,11 +203,11 @@ NE => { worked => 0, longname => "Nebraska",},
 SD => { worked => 0, longname => "South Dakota",},
 AB => { worked => 0, longname => "Alberta",},
 BC => { worked => 0, longname => "British Columbia",},
-GH => { worked => 0, logname => "Ontario Golden Horseshoe",},
+GH => { worked => 0, longname => "Ontario Golden Horseshoe",},
 MB => { worked => 0, longname => "Manitoba",},
-NB => { worked => 0, logname => "New Brunswick",},
+NB => { worked => 0, longname => "New Brunswick",},
 NL => { worked => 0, longname => "Newfoundland/Labrador",},
-NS => { worked => 0, logname => "Nova Scotia",},
+NS => { worked => 0, longname => "Nova Scotia",},
 ONE => { worked => 0, longname => "Ontario East",},
 ONN => { worked => 0, longname => "Ontario North",},
 ONS => { worked => 0, longname => "Ontario South",},
@@ -216,7 +216,7 @@ QC => { worked => 0, longname => "Quebec",},
 SK => { worked => 0, longname => "Saskatchewan",},
 TER => { worked => 0, longname => "Territories",},
 );
-# => { worked => 0, logname => "",},
+# => { worked => 0, longname => "",},
 #print Dumper(%mults);
 
 ##########
