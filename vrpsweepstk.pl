@@ -64,8 +64,8 @@ $message;
 $sectMode = 0;
 $SECT_LIST_CNT = 4; # how many columns of sections to display
 
-$geom_x ="760";
-$geom_y ="640";
+$geom_x ="880";
+$geom_y ="710";
 
 # who what where
 my $test_year = 1900 + (localtime)[5];
