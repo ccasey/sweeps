@@ -104,7 +104,7 @@ while(<LL>){
    	}else{
 #    	$qsos{$foo[4]} = { action => "add", sserial => $foo[1], rserial => $foo[2], precedence => $foo[3], check => $foo[5],
 #                     	section => $foo[6], qsotime => $foo[7], freq => $foo[8]};
-        $mults{$foo[6]}++;
+        $mults{$foo[6]}{worked}++;
    	}
  }
 
