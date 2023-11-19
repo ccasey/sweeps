@@ -112,7 +112,7 @@ close(LL);
 
 $cnt = 0;
 foreach (keys %mults){
-  	if ($mults{$_}{worked} > 0){
+  	if ($mults{$_}{worked} == 0){
    		print " $_ - $mults{$_}{longname}\n";
         $cnt++;
   	}
