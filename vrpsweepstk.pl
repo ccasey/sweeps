@@ -1108,7 +1108,7 @@ sub make_window {
   for my $sl ( 1 .. $SECT_LIST_CNT ) {
 	  $SectList{$sl} = $bottom_frame->Listbox(-takefocus => 0,
 	 																				-selectmode => single,
-																					-width => 26, -height => 21
+																					-width => 26, -height => 22
 																					)->pack(qw/-side left -fill both/);
 	  $SectList{$sl}->bind('<Double-Button-1>',
 	    sub {
