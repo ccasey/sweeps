@@ -327,11 +327,11 @@ sub section_stats {
       $m += 1;
     }
     $mm += 1;
-    print "- $_ -\n";
+    print "- $_ / $mults{$_}{worked} -\n";
   }
 
   print "$mm\n";
-  
+
   return($m . "/" . $mm);
 
 }
