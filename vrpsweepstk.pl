@@ -330,6 +330,8 @@ sub section_stats {
     print "- $_ -\n";
   }
 
+  print "$mm\n";
+  
   return($m . "/" . $mm);
 
 }
