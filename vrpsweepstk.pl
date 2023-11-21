@@ -395,7 +395,7 @@ sub cabrillo {
   }
 
   $cab_lst->insert('end', "END-OF-LOG:");
-  print FH "END-OF-LOG:"
+  print FH "END-OF-LOG:";
 
   close(FH);
 }
