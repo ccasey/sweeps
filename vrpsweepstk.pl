@@ -344,7 +344,7 @@ sub cabrillo {
 
   my $rendered_cab = "";
 
-  open(FH,">>$CABFILE")
+  open(FH,">$CABFILE")
  	  or die "cant open $CABFILE: $!\n";
 
   my %tpl_data = (
