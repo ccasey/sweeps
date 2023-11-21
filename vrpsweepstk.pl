@@ -388,6 +388,7 @@ sub cabrillo {
     $cab_lst->insert('end', $cab_line);
   }
 
+  $cab_lst->insert('end', "END-OF-LOG:");
 }
 ##########
 
