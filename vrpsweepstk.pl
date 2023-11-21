@@ -344,6 +344,9 @@ sub cabrillo {
 
   my $rendered_cab = "";
 
+  open(FH,">>$CABFILE")
+ 	  or die "cant open $CABFILE: $!\n";
+
   my %tpl_data = (
     op_info->{call} => $op_info->{call},
     op_info->{section} => $op_info->{section},
@@ -361,6 +364,8 @@ sub cabrillo {
   $cab_lst->delete('0.0',"end");
 
   $cab_lst->insert('end', $rendered_cab);
+
+  print FH $rendered_cab;
 
   foreach $call (@bar){
     unless($call){next;}
@@ -386,9 +391,16 @@ sub cabrillo {
     );
 
     $cab_lst->insert('end', $cab_line);
+    print FH $cab_line;
   }
 
   $cab_lst->insert('end', "END-OF-LOG:");
+  print FH "END-OF-LOG:"
+  
+
+  print FH $cab_lst;
+
+  close(FH);
 }
 ##########
 
