@@ -952,8 +952,8 @@ sub recall_qso {
 
 sub get_rig_freq {
   	$rig_freq = $rig->get_freq();
-	substr($rig_freq, -3, 0) = '.';
-	substr($rig_freq, -7, 0) = '.';
+	substr($rig_freq, -3) = '';
+
 
 	unless ($Freq){
 		$Freq = "no rig data yet"
